@@ -1,0 +1,676 @@
+#!/usr/bin/env lua
+-- Alternative for OpenWrt's /sbin/wifi.
+-- Copyright Not Reserved.
+-- Hua Shao <nossiac@163.com>
+
+package.path = '/lib/wifi/?.lua;'..package.path
+
+local mtkwifi = require("mtkwifi")
+local nixio = require("nixio")
+cmd = arg[1]
+dev = arg[2]
+back_cfg = 1
+
+local backup_config = "/tmp/backup_wireless"
+
+if cmd ~= "detect" then
+	for _,f in ipairs(string.split(mtkwifi.read_pipe("find /lib/wifi/ -name \"*.lua\" 2>/dev/null"), "\n")) do
+		dofile(f)
+	end
+end
+
+function usage()
+	print("wifi <up|down|reset|reload|restart|status> [devname]")
+end
+
+function wifi_common_up(devname)
+	nixio.syslog("debug", "wifi_common_up "..tostring(devname))
+
+	-- need to find out the vif prefix for this device
+	for _,vif in ipairs(string.split(mtkwifi.read_pipe("ls /sys/class/net"), "\n"))
+	do
+		if string.match(vif, "ra%a-%d+") then
+			os.execute("ifconfig "..vif.." up")
+		end
+	end
+	for _,vif in ipairs(string.split(mtkwifi.read_pipe("ls /sys/class/net"), "\n"))
+	do
+		if string.match(vif, "apcli%a-%d+") then
+			os.execute("ifconfig "..vif.." up")
+		end
+	end
+
+	if devname then
+		os.execute("rm -f /tmp/mtk/wifi/"..devname.."*.need_reload")
+	else
+		os.execute("rm -f /tmp/mtk/wifi/*.need_reload")
+	end
+end
+
+function wifi_common_down(devname)
+	nixio.syslog("debug", "wifi_common_down "..tostring(devname))
+
+	-- need to find out the vif prefix for this device
+	for _,vif in ipairs(string.split(mtkwifi.read_pipe("ls /sys/class/net"), "\n"))
+	do
+		if string.match(vif, "apcli%d+")
+		or string.match(vif, "apclii%d+") then
+			os.execute("ifconfig "..vif.." down")
+		end
+	end
+	for _,vif in ipairs(string.split(mtkwifi.read_pipe("ls /sys/class/net"), " "))
+	do
+		if string.match(vif, "ra%d+")
+		or string.match(vif, "rai%d+")
+		or string.match(vif, "rae%d+")
+		or string.match(vif, "rax%d+") then
+			os.execute("ifconfig "..vif.." down")
+		end
+	end
+end
+
+function wifi_common_restart(devname)
+	nixio.syslog("debug", "wifi_common_restart "..tostring(devname))
+	wifi_common_up()
+	wifi_common_down()
+end
+
+function wifi_common_reload(devname)
+	nixio.syslog("debug", "wifi_common_reload "..tostring(devname))
+	wifi_common_up()
+	wifi_common_down()
+end
+
+function wifi_common_reset(devname)
+	nixio.syslog("debug", "wifi_common_reset called!")
+	local curpath = "/etc/wireless/"
+	if devname then
+		curpath = curpath..devname.."/"
+	end
+	local defpath = "/rom"..defpath
+	if mtkwifi.exists(defpath) then
+		os.execute("rm -rf "..curpath)
+		os.execute("cp -rf "..defpath.." "..curpath)
+		wifi_common_reload()
+	else
+		nixio.syslog("debug", defpath.." missing, unable to reset!")
+	end
+end
+
+function wifi_common_status(devname)
+	nixio.syslog("debug", "wifi_common_status "..tostring(devname))
+	print(mtkwifi.read_pipe("iwconfig"))
+	print(mtkwifi.read_pipe("ifconfig -a"))
+end
+
+function wifi_common_detect(devname)
+	nixio.syslog("debug", "wifi_common_detect "..tostring(devname))
+	local devs = mtkwifi.getdevs()
+	for _,dev in ipairs(devs) do
+		print("config wifi-device "..dev.devname..
+			"\n\toption type "..dev.devname..
+			"\n\toption vendor ralink"..
+			"\n\toption channel "..dev.Channel)
+		for _,vif in ipairs(dev.vifs) do
+			print("\nconfig wifi-iface"..
+				"\n\toption device"..dev.devname..
+				"\n\toption ifname"..vif.vifname..
+				"\n\toption network lan"..
+				"\n\toption mode ap")
+		end
+	end
+end
+
+function wifi(cmd, devname)
+	local mtkwifi = require("mtkwifi")
+	local devs, l1parser = mtkwifi.__get_l1dat()
+	local is_ftm = mtkwifi.read_pipe("cat /proc/xiaoqiang/ft_mode")
+	local wl0_radio = mtkwifi.__trim(mtkwifi.read_pipe("nvram get wl0_radio"))
+	local wl1_radio = mtkwifi.__trim(mtkwifi.read_pipe("nvram get wl1_radio"))
+
+	if '1' == is_ftm and '1' ~= wl0_radio and '1' ~= wl1_radio then
+		os.execute("echo ftm mode > /dev/console")
+		return 0
+	end
+
+	l1parser.creat_link_for_nvram()
+	if not devs or not l1parser then
+		return wifi_orig(cmd, devname)
+	end
+
+	if devname then
+		for rfname, dev in mtkwifi.__spairs(devs.devname_ridx) do
+			if dev.main_ifname == devname or devname == rfname then
+				local compatname = dev.init_compatible
+				assert(compatname)
+
+				if _G[compatname.."_"..cmd] then
+					nixio.syslog("info", "call "..compatname.."_"..cmd.."("..rfname..")")
+					_G[compatname.."_"..cmd](rfname)
+				end
+			end
+		end
+	else
+		-- if devname not specified
+		if cmd == "restart" or cmd == "reload" then
+			local tab_compatname = {}
+			for key, dev in pairs(devs.devname_ridx) do
+				tab_compatname[key] = dev.init_compatible
+			end
+			local tab_rp = {}
+			for key,val in pairs(tab_compatname) do
+				tab_rp[val] = true
+			end
+
+			for dev, val in pairs(tab_rp) do
+				nixio.syslog("info", "call "..dev.."_"..cmd)
+				_G[dev.."_"..cmd]()
+			end
+		else
+			for devname, dev in mtkwifi.__spairs(devs.devname_ridx) do
+				local compatname = dev.init_compatible
+				nixio.syslog("info", "call "..compatname.."_"..cmd.."("..devname..")")
+				_G[compatname.."_"..cmd](devname)
+			end
+
+			if cmd == "up" then
+				os.execute("/etc/init.d/miwifi-roam restart")
+				os.execute("/etc/init.d/topomon restart")
+				os.execute("/etc/init.d/miwifi-discovery restart")
+			end
+		end
+	end
+
+	-- for wifi service which should setup after wifi up
+	if  cmd == "up" or cmd == "restart" or cmd == "reload" or cmd == "reset" then
+		_G["wifi_service_misc"]()
+		os.execute("echo 3 > /proc/sys/vm/drop_caches")
+	end
+end
+
+function wifi_orig(cmd,devname)
+	print("wifi_orig",cmd,devname)
+	local relname = nil
+	if devname then
+		relname = string.split(devname,".")[1]
+	end
+
+	if relname then
+		if _G[relname.."_"..cmd] then
+			nixio.syslog("info", "call "..relname.."_"..cmd.."("..devname..")")
+			_G[relname.."_"..cmd](devname)
+		end
+	else
+		local devinfo = mtkwifi.search_dev_and_profile()
+		local done = {}
+		for __devname in pairs(devinfo) do
+			local __relname = string.split(__devname,".")[1]
+			repeat
+				-- common case
+				if done[__relname] then break else done[__relname] = true end
+				if _G[__relname.."_"..cmd] then
+					nixio.syslog("info", "call "..__relname.."_"..cmd.."("..__devname..")")
+					_G[__relname.."_"..cmd](__devname)
+					break
+				end
+				-- try shell
+				local dev_shell = "/lib/wifi/"..__relname..".sh"
+				if mtkwifi.exists(dev_shell) then
+					local cmd = "source "..dev_shell.."; "..__relname.."_"..cmd.." > /dev/null"
+					nixio.syslog("info", cmd)
+					if os.execute(cmd) ~= 0 then
+						nixio.syslog("err", cmd)
+					end
+					break
+				end
+				-- fall back on common api
+				nixio.syslog("info", "no scripts for "..__relname.." found, fall back on common api!")
+				_G["wifi_common_"..cmd](__devname)
+			until true
+		end
+	end
+end
+
+local LuciUtil = require("luci.util")
+function dosyscmd(cmd, default)
+    if cmd == nil or cmd == "" then
+        return default
+    end
+    local value = LuciUtil.exec(cmd)
+    if value then
+        value = LuciUtil.trim(value)
+    end
+
+    if value == nil or value == "" then
+        return default
+    else
+        return value
+    end
+end
+
+function mtk_wifi_detect()
+    local devs, l1parser = mtkwifi.__get_l1dat()
+    local relname
+    local macaddr
+    local guest_ifname = "wl14"
+    local miot_ifname = "wl13"
+    local default_bw = "0"
+    local CountryCode = dosyscmd("bdata get CountryCode","CN")
+    local bh_ap_ifname = dosyscmd("uci -q get misc.backhauls.backhaul_5g_ap_iface","wl5")
+    local bh_sta_ifname = dosyscmd("uci -q get misc.backhauls.backhaul_5g_sta_iface","apclix0")
+    local bh_wps_ifname = dosyscmd("uci -q get misc.wireless.mesh_ifname_5G","wl9")
+    local bh_ssid = dosyscmd("openssl rand -base64 8 | md5sum | cut -c1-8", "xiaomi_bh_ssid")
+    local bh_key = dosyscmd("openssl rand -base64 8 | md5sum | cut -c1-16", "xiaomi_bh_key")
+    local dfs = dosyscmd("uci -q get misc.mesh.support_dfs","0")
+    local nfc_2g_ifname = dosyscmd("uci -q get misc.nfc.if_2g_name","wl18")
+    local nfc_5g_ifname = dosyscmd("uci -q get misc.nfc.if_5g_name","wl08")
+    local nfc_support = dosyscmd("uci -q get misc.nfc.nfc_support","0")
+    local dut_inited = dosyscmd("uci -q get xiaoqiang.common.INITTED","NO")
+    local nfc_ssid = dosyscmd("bdata get wl1_ssid","xiaomi_nfc_ssid")
+    local nfc_key = dosyscmd("openssl rand -base64 8 | md5sum | cut -c1-16", "xiaomi_nfc_key")
+    local maxsta = "64"
+
+	if not devs then
+		return
+	end
+
+	-- default AutoChannelSkipList for 5G
+	-- no DFS channel to avoid CCA
+	-- no CH165 because it has only 20M bandwidth
+	local AutoChannelSkipList_5G = "52;56;60;64;100;104;108;112;116;120;124;128;132;136;140;165"
+
+	-- do CountryCode specific configuration
+	if CountryCode == "KR" then
+		-- New requirement from KR
+		-- 1. no BAND 4 (149, 153, 157, 161), because they only have 80M bandwidth
+		-- 2. no CH48 because it has lower power than other channels in BAND 1
+		AutoChannelSkipList_5G = "48;52;56;60;64;100;104;108;112;116;120;124;128;132;136;140;149;153;157;161;165"
+	end
+
+    for devname, dev in mtkwifi.__spairs(devs.devname_ridx) do
+        if devname == "MT7981.1.1" then
+            relname = "MT7981_1_1"
+            hwband = "2G"
+            ssid = dosyscmd("bdata get wl1_ssid", "xiaomi")
+            ifname = "wl1"
+            guest_ifname = "wl14"
+            macaddr = dosyscmd("getmac wl1", "00:11:22:33:44:55")
+            default_bw = "0"
+        elseif devname == "MT7981.1.2" then
+            relname = "MT7981_1_2"
+            hwband = "5G"
+            ssid = dosyscmd("bdata get wl0_ssid", "xiaomi_5G")
+            ifname = "wl0"
+            guest_ifname = "wl15"
+            macaddr = dosyscmd("getmac wl0", "00:11:22:33:44:56")
+            default_bw = "0"
+        else
+            break
+        end
+
+    if hwband == "2G" then
+        -- 2.4G wifi-device cfg
+        print([[
+config wifi-device ]]..relname.."\n"..[[
+    option vendor ralink
+    option device ]]..relname.."\n"..[[
+    option band ]]..hwband.."\n"..[[
+    option country ]]..CountryCode.."\n"..[[
+    option macaddr ]]..macaddr.."\n"..[[
+    option txpwr max
+    option bw ]]..default_bw.."\n"..[[
+    option channel 0
+    option ax 1
+    option txbf 3
+    option disabled 0
+    option WscModelName RD23
+    option AutoChannelSkipList '12;13'
+]])
+
+    -- 2.4G wifi-iface cfg
+    print([[
+config wifi-iface
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 0
+    option encryption none
+    option key 12345678
+    option miwifi_mesh 0
+    option backhaul 0
+    option mesh_ver 0
+    option wmm 1
+    option hidden 0
+    option vifidx 1
+    option twt_responder 0
+    option MbssMaxStaNum ]]..maxsta.."\n"..[[
+    option ssid ]]..ssid.."\n")
+
+    print([[
+config wifi-iface guest_2G
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..guest_ifname.."\n"..[[
+    option network guest
+    option mode ap
+    option disabled 1
+    option encryption psk2
+    option key 12345678
+    option wmm 1
+    option hidden 0
+    option vifidx 2
+    option MbssMaxStaNum ]]..maxsta.."\n"..[[
+    option NoForwarding 1
+]])
+
+    print([[
+config wifi-iface miot_2G
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..miot_ifname.."\n"..[[
+    option network miot
+    option mode ap
+    option ssid 25c829b1922d3123_miwifi
+    option disabled 0
+    option encryption none
+    option wmm 1
+    option hidden 1
+    option vifidx 3
+    option MbssMaxStaNum ]]..maxsta.."\n"..[[
+    option userswitch 1
+    option NoForwarding 1
+]])
+
+    if nfc_support == "1" and dut_inited == "NO" then
+    print([[
+config wifi-iface nfc_2g
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..nfc_2g_ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 0
+    option encryption psk2
+    option key ]]..nfc_key.."\n"..[[
+    option hidden 1
+    option vifidx 4
+    option ssid ]]..nfc_ssid.."_nfc".."\n")
+    end
+
+    elseif hwband == "5G" then
+        -- 5G wifi-device cfg
+    print([[
+config wifi-device ]]..relname.."\n"..[[
+    option vendor ralink
+    option device ]]..relname.."\n"..[[
+    option band ]]..hwband.."\n"..[[
+    option country ]]..CountryCode.."\n"..[[
+    option macaddr ]]..macaddr.."\n"..[[
+    option txpwr max
+    option bw ]]..default_bw.."\n"..[[
+    option channel 0
+    option ax 1
+    option txbf 3
+    option disabled 0
+    option WscModelName RD23
+    option DfsEnable ]]..dfs.."\n"..[[
+    option AutoChannelSkipList ']]..AutoChannelSkipList_5G.."'\n")
+
+    -- 5G wifi-iface cfg
+    print([[
+config wifi-iface
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 0
+    option encryption none
+    option key 12345678
+    option wmm 1
+    option hidden 0
+    option miwifi_mesh 1
+    option backhaul 0
+    option vifidx 1
+    option MbssMaxStaNum ]]..maxsta.."\n"..[[
+    option mesh_ver 4
+    option twt_responder 0
+    option ssid ]]..ssid.."\n")
+
+    print([[
+config wifi-iface bh_ap
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..bh_ap_ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 0
+    option encryption psk2
+    option key ]]..bh_key.."\n"..[[
+    option wmm 1
+    option hidden 1
+    option vifidx 2
+    option mesh_ver 4
+    option wds 1
+    option ssid MiMesh_]]..bh_ssid.."\n")
+
+    print([[
+config wifi-iface bh_wps
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..bh_wps_ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 1
+    option encryption none
+    option key 12345678
+    option wmm 1
+    option hidden 0
+    option vifidx 3
+    option ssid MiMesh_Wps
+    option wds 1
+]])
+
+    print([[
+config wifi-iface guest_5G
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..guest_ifname.."\n"..[[
+    option network guest
+    option mode ap
+    option disabled 1
+    option encryption psk2
+    option key 12345678
+    option wmm 1
+    option hidden 0
+    option vifidx 4
+    option MbssMaxStaNum ]]..maxsta.."\n"..[[
+    option NoForwarding 1
+]])
+
+    if nfc_support == "1" and dut_inited == "NO" then
+    print([[
+config wifi-iface nfc_5g
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..nfc_5g_ifname.."\n"..[[
+    option network lan
+    option mode ap
+    option disabled 0
+    option encryption psk2
+    option key ]]..nfc_key.."\n"..[[
+    option hidden 1
+    option vifidx 5
+    option ssid ]]..nfc_ssid.."_nfc".."\n")
+    end
+
+    print([[
+config wifi-iface bh_sta
+    option device ]]..relname.."\n"..[[
+    option ifname ]]..bh_sta_ifname.."\n"..[[
+    option network lan
+    option mode sta
+    option disabled 1
+    option encryption psk2
+    option ssid MiMesh_sta
+    option key 12345678
+]])
+    end
+
+    end
+end
+
+function nfc_update(op)
+	local nfc_support = dosyscmd("uci -q get misc.nfc.nfc_support","0")
+	local dut_inited = dosyscmd("uci -q get xiaoqiang.common.INITTED","NO")
+	local nfc_default_cfg = dosyscmd("uci -q get wireless.nfc_2g.ifname","")
+	local uci  = require "luci.model.uci".cursor()
+
+	if nfc_support == "0" then
+		nixio.syslog("debug", "nfc_support: 0, return!")
+		return
+	end
+
+	if nfc_default_cfg ~= "" and nfc_default_cfg ~= nil then
+		local dev_num = dosyscmd("ls -al /sys/class/net/|grep wl|wc -l","0")
+		if dut_inited == "YES" then
+			if op == "reload_legacy" and tonumber(dev_num) <= 1 then
+				os.execute("/sbin/nfc rm_wifi")
+				nixio.syslog("debug", "dut_inited: YES, /sbin/nfc rm_wifi")
+				os.execute("/usr/sbin/nfc.lua &")
+				return
+			else
+				uci:set("wireless", "nfc_2g", "disabled", "1")
+				uci:set("wireless", "nfc_5g", "disabled", "1")
+				uci:commit("wireless")
+				nixio.syslog("debug", "dut_inited: YES, set nfc disable")
+			end
+		end
+
+		if op == "update" then
+			local md5_now = dosyscmd("md5sum /etc/config/wireless | awk '{ print $1 }'", "")
+			local md5_ori = dosyscmd("md5sum $BACKUP_FILE | awk '{ print $1 }'", "")
+			local md5_nfc = dosyscmd("md5sum /var/run/nfc_wireless_backup | awk '{ print $1 }'", "")
+
+			nixio.syslog("debug", "md5_now: "..md5_now)
+			nixio.syslog("debug", "md5_ori: "..md5_ori)
+			nixio.syslog("debug", "md5_nfc: "..md5_nfc)
+			if md5_now ~= md5_ori and md5_now ~= md5_nfc then
+				uci:set("wireless", "nfc_2g", "disabled", "1")
+				uci:set("wireless", "nfc_5g", "disabled", "1")
+				uci:set("wireless", "nfc_2g", "ssid", "")
+				uci:set("wireless", "nfc_5g", "ssid", "")
+				uci:commit("wireless")
+				nixio.syslog("debug", "md5 diff, set nfc disable")
+			end
+		end
+	end
+	os.execute("/usr/sbin/nfc.lua &")
+end
+
+function xq_sync_re()
+	local open_file
+	local open_err
+	local uci  = require "luci.model.uci".cursor()
+	local net_mode = uci:get("xiaoqiang", "common", "NETMODE")
+	local xqwhc_wifi_lock = "/var/run/xqwhc_wifi.lock"
+
+	if net_mode ~= "whc_cap" and net_mode ~= "whc_re" and net_mode ~= "lanapmode" then
+		nixio.syslog("debug", "xq_sync_re: run in NON xqwhc mode, ignore!")
+		return
+	end
+
+	local cap_mode = uci:get("xiaoqiang", "common", "CAP_MODE")
+	local mesh_version = uci:get("xiaoqiang", "common", "MESH_VERSION")
+	if net_mode == "lanapmode" and (cap_mode ~= "ap" or tostring(mesh_version) == "1" or mesh_version == nil) then
+		nixio.syslog("debug", "xq_sync_re: run in NON xqwhc mode, ignore!")
+		return
+	end
+
+	if net_mode == "whc_cap" or ( net_mode == "lanapmode" and  cap_mode == "ap") then
+		dosyscmd("mesh_cmd sync", nil)
+	else
+		nixio.syslog("debug", "xq_sync_re: NONCAP, ignore!")
+	end
+end
+
+function kickout_dev_sta(dev)
+    local ucifile = "/etc/config/wireless"
+    local uci = require("shuci")
+    local ucicfg = uci.decode(ucifile)
+    if not ucicfg then error("unable to decode "..ucifile) return end
+    local need_kick = 0
+
+    for vifname, vif in pairs(ucicfg["wifi-iface"]) do
+        need_kick = 0
+        if nil == dev then
+            need_kick = 1
+        end
+
+        if vif.ifname == dev then
+            need_kick = 1
+        end
+
+        if 1 == need_kick and vif.ifname and vif.mode ~= "sta" and vif.disabled ~= "1" then
+            os.execute("iwpriv "..vif.ifname.." set DisConnectSta=ff:ff:ff:ff:ff:ff")
+            nixio.syslog("debug","kickmacs: dev="..vif.ifname)
+        end
+    end
+end
+
+nixio.syslog("debug", "wifi: exec cmd "..cmd)
+
+os.execute("lock /tmp/run/wifi.lock")
+if cmd == "up"
+or cmd == "reload"
+or cmd == "restart" then
+	os.execute("uci2dat -u /etc/config/wireless -l /etc/wireless/l1profile.dat")
+end
+
+if cmd == "up"
+or cmd == "down"
+or cmd == "status"
+or cmd == "reload"
+or cmd == "restart"
+or cmd == "reset" then
+	nfc_update("reload")
+	wifi(cmd, dev)
+elseif cmd == "reload_legacy" then
+	nfc_update("reload_legacy")
+	nixio.syslog("info", "legacy command "..cmd)
+	-- wifi("reload", dev)
+	os.execute("uci2dat -u /etc/config/wireless -l /etc/wireless/l1profile.dat")
+	os.execute("/usr/sbin/wifi_update reload_legacy")
+elseif cmd == "detect" then
+	mtk_wifi_detect()
+	back_cfg = 0
+elseif cmd == "backup_cfg" then
+	local backup_cmd = string.format("cp /etc/config/wireless %s", backup_config)
+	dosyscmd(backup_cmd, nil)
+	back_cfg = 0
+elseif cmd == "update" then
+	nfc_update("update")
+	os.execute("uci2dat -u /etc/config/wireless -l /etc/wireless/l1profile.dat")
+	xq_sync_re()
+	if arg[2] then
+		os.execute("/usr/sbin/wifi_update reload_legacy")
+	else
+		os.execute("/usr/sbin/wifi_update")
+	end
+elseif cmd == "get_cac_time" then
+	if arg[2] and arg[3] and arg[4] then
+		cac_cmd = string.format("/usr/sbin/check_cac_time %s %s", arg[3], arg[4])
+		os.execute(cac_cmd)
+	else
+		os.execute("/usr/sbin/check_cac_time")
+	end
+	back_cfg = 0
+elseif cmd == "kickmacs" then
+	kickout_dev_sta(dev)
+else
+	nfc_update("update")
+	os.execute("uci2dat -u /etc/config/wireless -l /etc/wireless/l1profile.dat")
+	xq_sync_re()
+	os.execute("/usr/sbin/wifi_update reload_legacy")
+end
+
+if back_cfg == 1 and cmd ~= "down" then
+	exec_cmd = string.format("cp /etc/config/wireless %s", backup_config)
+	nixio.syslog("debug", "wifi: back_cfg = 1")
+	dosyscmd(exec_cmd, nil)
+end
+
+os.execute("lock -u  /tmp/run/wifi.lock")

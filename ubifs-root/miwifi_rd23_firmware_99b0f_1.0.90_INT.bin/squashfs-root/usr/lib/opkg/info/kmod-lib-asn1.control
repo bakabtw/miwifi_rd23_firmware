@@ -1,0 +1,13 @@
+Package: kmod-lib-asn1
+Version: 5.4.171-1
+Depends: kernel (=5.4.171-1-d26d12c2c4a03de78a6bb9f4f440513f)
+Source: package/kernel/linux
+License: GPLv2
+Section: kernel
+Status: unknown hold not-installed
+Architecture: aarch64_cortex-a53
+Installed-Size: 2693
+Description:  Build a simple ASN.1 grammar compiler that produces a bytecode output
+ that can be interpreted by the ASN.1 stream decoder and used to
+ inform it as to what tags are to be expected in a stream and what
+ functions to call on what tags.

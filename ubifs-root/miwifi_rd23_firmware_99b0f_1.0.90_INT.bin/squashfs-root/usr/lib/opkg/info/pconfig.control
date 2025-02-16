@@ -1,0 +1,8 @@
+Package: pconfig
+Version: 1.0-0
+Depends: libc
+Source: package/miwifi/ipv6_passthrough
+Section: opt
+Architecture: aarch64_cortex-a53
+Installed-Size: 2335
+Description:  IPv6 Passthrough util

@@ -1,0 +1,10 @@
+Package: kmod-ipv6
+Version: 5.4.171-1
+Depends: kernel (=5.4.171-1-d26d12c2c4a03de78a6bb9f4f440513f)
+Source: package/kernel/linux
+License: GPLv2
+Section: kernel
+Status: unknown hold not-installed
+Architecture: aarch64_cortex-a53
+Installed-Size: 104
+Description:  Kernel modules for IPv6 support

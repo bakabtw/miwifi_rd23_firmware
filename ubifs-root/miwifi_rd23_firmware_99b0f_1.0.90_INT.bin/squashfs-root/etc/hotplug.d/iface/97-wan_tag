@@ -1,0 +1,25 @@
+#!/bin/sh
+
+logger -p notice -t "hotplug.d" "97-wan_tag: wantag run because of $INTERFACE $ACTION"
+
+[ "1" != "$(uci -q get port_service.wan.wantag)" ] && return
+[ "$INTERFACE" = "internet" ] && return
+
+# wan's dial interface up
+[ "$ACTION" = "ifup" ] && {
+    wan_port=$(port_map port service wan)
+    [ -z "$wan_port" ] && return
+    wan_dial_ifname=$(port_map config get "$wan_port" dial_ifname)
+    [ -z "$wan_dial_ifname" ] && return
+
+    interface="$(uci -q get network."$INTERFACE".ifname)"
+    [ "$wan_dial_ifname" = "$interface" ] && {
+        priority=$(uci -q get port_service.wantag_attr.priority)
+
+        [ -n "$priority" ] && [ "$priority" -ge 0 ] && [ "$priority" -le 7 ] && {
+            logger -p notice -t "hotplug.d" "97-wan_tag: set $wan_dial_ifname priority to $priority"
+            vconfig set_ingress_map "$wan_dial_ifname" 0 "$priority"
+            vconfig set_egress_map "$wan_dial_ifname" 0 "$priority"
+        }
+    }
+}

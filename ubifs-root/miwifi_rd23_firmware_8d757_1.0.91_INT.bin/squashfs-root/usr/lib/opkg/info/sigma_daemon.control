@@ -1,0 +1,8 @@
+Package: sigma_daemon
+Version: 1
+Depends: libc, libpthread, librt
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/sigma_daemon
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 217968
+Description:  SIGMA_DAEMON

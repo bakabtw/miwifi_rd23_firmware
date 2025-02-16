@@ -1,0 +1,205 @@
+config misc mount_bind_etc
+	option flag_name flag_format_overlay
+
+config misc format_ext_part
+	option save_boot_status 0
+
+config misc mount_jffs2
+	option do_mount 0
+
+config misc determine_ext_root
+	option skip_det_ext_root 0
+
+config misc wireless
+	option if_2G MT7981_1_1
+	option if_5G MT7981_1_2
+	option guest_2G wl14
+	option guest_5G wl15
+	option apclient_2G apcli0
+	option apclient_5G apclix0
+	option wl_if_count 2
+	option ifname_2G wl1
+	option ifname_5G wl0
+	option short_web_support_mumimo 0
+	option wifi5_bk_2G wl7
+	option wifi5_bk_5G wl4
+	option ifname_guest_2G wl14
+	option ifname_guest_5G wl15
+	option ifname_apclient_2G apcli0
+	option mesh_ifname_5G wl9
+	option apclix0_scanifname 'wl0'
+	option apcli0_scanifname 'wl1'
+	option apclix0_scanband  '5g'
+	option apcli0_scanband  '2g'
+	option apclix0_device  'MT7981_1_2'
+	option apcli0_device  'MT7981_1_1'
+	option apclix0_mode  '2'
+	option apcli0_mode  '1'
+	list APCLI_IFNAMES 'apclix0'
+	list APCLI_IFNAMES 'apcli0'
+
+	list DEVICE_LIST 'device_2g'
+	list DEVICE_LIST 'device_5g'
+	option device_2g_band '2g'
+	option device_2g_name 'MT7981_1_1'
+	option device_2g_primary 'iface_2g'
+	option device_5g_band '5g'
+	option device_5g_name 'MT7981_1_2'
+	option device_5g_primary 'iface_5g'
+	list IFACE_LIST 'iface_2g'
+	list IFACE_LIST 'iface_5g'
+	list IFACE_LIST 'iface_guest_2g'
+	list IFACE_LIST 'iface_miot_2g'
+	option iface_2g_ifname 'wl1'
+	option iface_2g_deviceidx 'device_2g'
+	option iface_2g_network 'lan'
+	option iface_5g_ifname 'wl0'
+	option iface_5g_deviceidx 'device_5g'
+	option iface_5g_network 'lan'
+	option iface_guest_2g_name 'guest_2G'
+	option iface_guest_2g_ifname 'wl14'
+	option iface_guest_2g_deviceidx 'device_2g'
+	option iface_guest_2g_network 'guest'
+	option iface_guest_5g_name 'guest_5G'
+	option iface_guest_5g_ifname 'wl15'
+	option iface_guest_5g_deviceidx 'device_5g'
+	option iface_guest_5g_network 'guest'
+	option iface_miot_2g_name 'miot_2G'
+	option iface_miot_2g_ifname 'wl13'
+	option iface_miot_2g_deviceidx 'device_2g'
+	option iface_miot_2g_network 'miot'
+	list APCLI_LIST 'apcli_2g'
+	list APCLI_LIST 'apcli_5g'
+	option apcli_2g_ifname 'apcli0'
+	option apcli_2g_deviceidx 'device_2g'
+	option apcli_2g_workmode '1'
+	option apcli_2g_network 'lan'
+	option apcli_5g_ifname 'apclix0'
+	option apcli_5g_deviceidx 'device_5g'
+	option apcli_5g_workmode '2'
+	option apcli_5g_network 'lan'
+	list ifname_2G_list wl1
+	list ifname_2G_list wl3
+	list ifname_2G_list wl14
+	list ifname_2G_list wl8
+	list ifname_5G_list wl0
+	list ifname_5G_list wl2
+	list ifname_5G_list wl15
+	list ifname_5G_list wl6
+	option support_miot '0'
+	option support_160m '1'
+	option scan_skip_list '100:104:108:112:116:120:124:128:132:136:140:144'
+
+config misc httpd
+	option uhttpd 0
+
+config misc sw_reg
+	option sw_lan_ports	'1 2 3'
+	option sw_wan_port	'0'
+	option sw_lan_cpu_port '6'
+	option sw_wan_cpu_port '5'
+
+config misc quickpass
+	option ctf 0
+	option hook_toggle 0
+	option ipv6_toggle 0
+
+config misc log
+	option redundancy_mode 1
+
+config misc boot
+	option syslog 0
+	option checkswap 0
+
+config misc firewall
+	option webinit 1
+
+config misc messagingagent
+	option thread_num 6
+
+config misc iwevent
+	option authorize 1
+
+config misc initd
+	option cpulimit_en 0
+	option cpuctr_en 1
+	option trafctr_en 1
+	option networkdt_en 1
+
+config misc hardware
+	option displayName 'Xiaomi Router AX3000T'
+	option model RD23
+	option recovery 0
+	option gpio 0
+	option flash_per 0
+	option bbs 'http://bbs.xiaomi.cn/f-354'
+	option verify 'cd /tmp;mkxqimage -v '
+	option camera '/userdisk/data/'
+	option usbmode 0
+	option rom_up_path '/userdisk/data/upload/'
+	option rom_up_file 'customrom.bin'
+	option rom_down_path '/userdisk/data/otadownload/'
+	option cpufreq '1000MHz'
+	option wanspeed '1000'
+	option memtype 'DDR3'
+	option memfreq '1333MHz'
+	option memsize '256MB'
+	option chip_type 'MediaTek'
+
+config misc 'modules_guest_2G'
+	option guestwifi 'wl14'
+
+config misc 'modules_guest_5G'
+	option guestwifi 'wl15'
+
+config misc config_bkup
+	option cfg_bkup_en 1
+
+config misc fantmp
+	option fantmp_en 0
+
+config misc check_for_boottype
+	option flag31 0
+
+config misc ota_pred
+	option download 1
+
+config misc http_proxy
+	option fastpath "none"
+
+config misc cgroup
+	option memgrp1_en 1
+	option memgrp1_limit '30m'
+
+config misc backhauls
+	option backhaul '5g'
+	option backhaul_5g_sta_iface 'apclix0'
+	option backhaul_5g_ap_iface 'wl5'
+
+config misc mesh
+	list version '2'
+	list version '3'
+	list version '4'
+	option max_node_count '9'
+	option require_re_vlan '1'
+	option support_dfs '1'
+	option map '0'
+
+config misc features
+	option meshSuites '0'
+	option supportMesh '1'
+	option redmi '0'
+	option lanWanSwitch '0'
+	option supportNewTopo '1'
+	option miot_led '1'
+	option multiwan '1'
+	option special_region_en '1'
+	option miio_ot '1'
+
+config misc nfc
+	option nfc_support '1'
+	option if_2g_name wl18
+	option if_5g_name wl08
+
+config misc dhcp
+	option host_limit '600'

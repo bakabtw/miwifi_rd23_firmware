@@ -1,0 +1,8 @@
+Package: switch
+Version: 1
+Depends: libc, libnl-tiny
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/switch
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 105603
+Description:  An program to config switch.

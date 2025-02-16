@@ -1,0 +1,16 @@
+/lib/wifi/wifi_services.lua
+/etc/wireless/mediatek/test-mode-switch.sh
+/etc/wireless/l1profile.dat
+/etc/wireless/mediatek/l1profile.dat.single
+/etc/wireless/mediatek/version
+/etc/wireless/mediatek/l1profile.dat.dbdc
+/etc/wireless/mediatek/mt7981-ax3000.dbdc.b0.dat
+/etc/wireless/mediatek/mt7981-sku-bf.dat
+/etc/wireless/mediatek/mt7981-ax3000.dbdc.b1.dat
+/etc/rc.button/wps
+/etc/wireless/mediatek/mt7981.1.dat
+/lib/wifi/mtwifi.lua
+/etc/wireless/mediatek/mt7981.dbdc.b0.dat
+/etc/wireless/mediatek/mt7981.2.dat
+/etc/wireless/mediatek/mt7981.dbdc.b1.dat
+/etc/wireless/mediatek/mt7981-sku.dat

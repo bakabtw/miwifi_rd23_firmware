@@ -1,0 +1,15 @@
+#!/bin/sh
+logger -p notice -t "hotplug.d" "net/00-sysctl: run because of $DEVICENAME $ACTION"
+if [ "$ACTION" = add ]; then
+			ppd_if=$(uci -q get network.ppd_if.ifname)
+			if [ ${DEVICENAME} = ${ppd_if} ]; then
+				echo ${DEVICENAME} >/sys/kernel/debug/hnat/hnat_ppd_if
+			fi
+
+	for CONF in /etc/sysctl.d/*.conf /etc/sysctl.conf; do
+		[ ! -f "$CONF" ] && continue
+		sed -ne "/^[[:space:]]*net\..*\.$DEVICENAME\./p" "$CONF" |
+			sysctl -e -p - | logger -t sysctl
+	done
+	[ -f /usr/sbin/smp.sh ] && /usr/sbin/smp.sh
+fi

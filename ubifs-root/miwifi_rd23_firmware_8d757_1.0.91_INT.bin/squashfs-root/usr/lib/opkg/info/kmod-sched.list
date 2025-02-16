@@ -1,0 +1,4 @@
+/etc/modules.d/73-sched
+/lib/modules/5.4.171/sch_prio.ko
+/lib/modules/5.4.171/sch_htb.ko
+/lib/modules/5.4.171/sch_sfq.ko

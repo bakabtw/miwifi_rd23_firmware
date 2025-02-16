@@ -1,0 +1,48 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+usage() {
+	echo "getmac <wl1|wl0|lan|wan|wan2>"
+	echo "example: getmac"
+	echo "         getmac wan"
+}
+
+WL1_OFFSET=0x4
+WL0_OFFSET=0xA
+
+factory_mtd_name="Factory"
+dev_name="$(find_mtd_part ${factory_mtd_name})"
+[ -z "$dev_name" ] && dev_name="/dev/mtdblock4"
+
+ethaddr_lan=$(bdata get ethaddr)
+ethaddr_wan=$(bdata get ethaddr_wan)
+ethaddr_wan2=$(bdata get ethaddr_wan2)
+
+wl1addr=$(hexdump -C -s $WL1_OFFSET -n 6 "$dev_name" | awk 'NR<2 {print $2":"$3":"$4":"$5":"$6":"$7}')
+wl0addr=$(hexdump -C -s $WL0_OFFSET -n 6 "$dev_name" | awk 'NR<2 {print $2":"$3":"$4":"$5":"$6":"$7}')
+
+case $1 in
+	-h)
+		usage
+		;;
+	wl0)
+		echo "$wl0addr"
+		;;
+	wl1)
+		echo "$wl1addr"
+		;;
+	wan|eth)
+		echo "$ethaddr_wan"
+		;;
+	lan)
+		echo "$ethaddr_lan"
+		;;
+	wan2)
+		echo "$ethaddr_wan2"
+		;;
+	*)
+		echo "$ethaddr_wan,$ethaddr_lan,$ethaddr_wan2,$wl1addr,$wl0addr"
+		;;
+esac

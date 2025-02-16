@@ -1,0 +1,8 @@
+Package: port_service_wantag
+Version: 1-1.0
+Depends: libc
+Source: package/miwifi/port_service
+Section: opt
+Architecture: aarch64_cortex-a53
+Installed-Size: 560
+Description:  wan_tag port function

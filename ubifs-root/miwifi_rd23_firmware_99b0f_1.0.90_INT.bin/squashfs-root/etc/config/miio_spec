@@ -1,0 +1,17 @@
+
+config ot '2'
+	option 1 '1'
+	option 2 '1'
+	option 3 '1'
+
+config ot '2_1'
+	option type 'int'
+
+config ot '2_2'
+	option type 'int'
+
+config ot '2_3'
+	option type 'int'
+
+config ot '7'
+	option ignore '1'

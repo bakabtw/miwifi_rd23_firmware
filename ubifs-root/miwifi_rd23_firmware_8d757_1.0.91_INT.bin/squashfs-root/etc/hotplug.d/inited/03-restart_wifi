@@ -1,0 +1,22 @@
+#!/bin/sh
+
+logger -p notice -t "hotplug.d" "03-restart_wifi: run because of init done."
+
+wifi_reload() {
+	sleep 5
+	local mode=$(uci -q get xiaoqiang.common.NETMODE)
+	if [ "$mode" != "whc_cap" ]; then
+		exit 0
+	fi
+
+	local nvram_ccode=$(nvram get CountryCode)
+	local bdregion=$(bdata get CountryCode)
+	if [ -n "$nvram_ccode" ] && [ -n "$bdregion" ]; then
+		local skuidx=$(uci -q get power_specialized.$bdregion.$nvram_ccode)
+		if [ -n "$skuidx" ]; then
+			/sbin/wifi reload &
+		fi
+	fi
+}
+
+wifi_reload &

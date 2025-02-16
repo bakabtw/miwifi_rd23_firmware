@@ -1,0 +1,9 @@
+Package: datconf
+Version: 1
+Depends: libc, kvcedit
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/datconf
+Section: MTK Properties
+Maintainer: Weijie Gao <weijie.gao@mediatek.com>
+Architecture: aarch64_cortex-a53
+Installed-Size: 5801
+Description:  Utility for editing dat files used by MediaTek Wi-Fi drivers

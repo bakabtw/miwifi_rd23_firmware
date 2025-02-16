@@ -1,0 +1,8 @@
+Package: luci-app-mtk
+Version: 1
+Depends: libc, datconf-lua
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/luci-app-mtk
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 29042
+Description:  mtk luci app

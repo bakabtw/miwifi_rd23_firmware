@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# del nework eth1 config
+interface_eth1_section=$(uci show network | grep -sw 'eth1' | grep -sw interface | cut -d '.' -f 2 | xargs)
+[ -n "$interface_eth1_section" ] && {
+    uci batch <<-EOF
+        del network.eth1
+        del network.$interface_eth1_section
+        commit network
+	EOF
+}
+
+# add network lan_ipv6_alias config
+lan_ipv6_alias_secion=$(uci -q get network.lan_ipv6_alias)
+[ -z "$lan_ipv6_alias_secion" ] && {
+    uci batch <<-EOF
+        set network.lan_ipv6_alias=alias
+        set network.lan_ipv6_alias.interface='lan'
+        set network.lan_ipv6_alias.proto='static'
+        set network.lan_ipv6_alias.ip6addr='fd00:6969:6969::1'
+        commit network
+	EOF
+}
+
+# update port_map settings
+[ "8021q" != "$(uci -q get port_map.settings.vlan_type)" ] && {
+    uci -q batch <<-EOF
+        del port_map.settings.last_vlan_type
+        set port_map.settings.vlan_type='8021q'
+        commit port_map
+	EOF
+}

@@ -1,0 +1,3 @@
+/etc/modules-boot.d/10-conninfra
+/etc/modules.d/10-conninfra
+/lib/modules/5.4.171/conninfra.ko

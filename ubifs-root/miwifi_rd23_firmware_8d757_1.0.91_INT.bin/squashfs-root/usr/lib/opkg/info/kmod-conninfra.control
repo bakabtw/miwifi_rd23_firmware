@@ -1,0 +1,9 @@
+Package: kmod-conninfra
+Version: 5.4.171-1
+Depends: kernel (=5.4.171-1-d26d12c2c4a03de78a6bb9f4f440513f)
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/drivers/connectivity/conninfra
+Section: kernel
+Maintainer: Kun-Ze Syue<kun-ze.syue@mediatek.com>
+Architecture: aarch64_cortex-a53
+Installed-Size: 46509
+Description:  Support for connectivity conninfra driver.

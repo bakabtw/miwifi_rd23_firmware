@@ -1,0 +1,46 @@
+config common "settings"
+    option router_services 'lag iptv wan'
+    option ap_services "lag"
+    option service_vids ""
+
+config service 'wan'
+    option enable '1'
+    option ports '0'
+    option type 'eth'
+    option wandt '1'
+    option wantag '0'
+
+config service 'lag'
+    option enable '0'
+    option ports ''
+
+config service 'iptv'
+    option enable '0'
+    option ports ''
+
+config attr 'wandt_attr'
+    option log_level '6'
+    option detect_times '-1'
+    option detect_interval '4000'
+    option send_times '2'
+    option send_interval '2000'
+    option ports '1 2 3 4'
+    option enable '1'
+    option mac '4c:c6:4c:1b:fc:93'
+    option vid ''
+    option priority ''
+
+config attr 'wantag_attr'
+    option vid '0'
+    option priority '0'
+    option profile '0'
+
+config attr 'iptv_attr'
+    option vid '-1'
+    option priority '-1'
+    option profile '0'
+    option wan_egress_tag '1'
+    option lan_egress_tag '0'
+
+config attr 'lag_attr'
+    option mode '2'

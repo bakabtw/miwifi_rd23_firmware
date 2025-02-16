@@ -1,0 +1,6 @@
+#!/bin/sh
+uci batch <<-EOF
+	set luci.languages.es_la="Español (Latinoamericano)"
+        commit luci
+EOF
+

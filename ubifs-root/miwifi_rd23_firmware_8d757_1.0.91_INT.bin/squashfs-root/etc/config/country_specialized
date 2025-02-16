@@ -1,0 +1,13 @@
+config mapping EU
+	option RU 'RU'
+	option UZ 'UZ'
+	option ID 'EG'
+	option MA 'MA'
+	option TN 'TN'
+	option EG 'EG'
+config mapping UK
+	option MY 'MY'
+	option NG 'NG'
+config mapping US
+config mapping JP
+config mapping KR

@@ -1,0 +1,9 @@
+/etc/banner.mtk
+/etc/kernel.config
+/usr/lib/lua/shuci.lua
+/lib/preinit/82_1_wifi_e2p
+/usr/sbin/hwnat-disable.sh
+/etc/openwrt.config
+/etc/sdk.version
+/sbin/netsys_dbg.sh
+/usr/sbin/hwnat-enable.sh

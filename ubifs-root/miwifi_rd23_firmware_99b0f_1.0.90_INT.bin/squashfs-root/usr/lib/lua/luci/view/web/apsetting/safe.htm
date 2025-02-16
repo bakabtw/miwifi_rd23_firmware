@@ -1,0 +1,138 @@
+<%
+--[[
+    Info    路由器中继安全中心
+]]--
+local ver = require("xiaoqiang.XQVersion").webVersion
+local xqlanwanutil = require "xiaoqiang.util.XQLanWanUtil"
+local remote_addr = luci.http.getenv("REMOTE_ADDR") or ""
+local mac = string.upper(luci.sys.net.ip4mac(remote_addr) or "")
+local macdefault = string.upper(xqlanwanutil.getDefaultMacAddress())
+local bdCcode = require("xiaoqiang.XQCountryCode").getBDataRegion()
+local features = require("xiaoqiang.XQFeatures").FEATURES
+local lanip = require("xiaoqiang.util.XQLanWanUtil").getLanIp()
+%>
+<%include("web/inc/head")%>
+<title><%:小米路由器%></title>
+<meta name="viewport" content="width=1200">
+<link href="<%=resource%>/web/css/bc.css?v=<%=ver%>" rel="stylesheet">
+<link href="<%=resource%>/web/css/upgrade.css?v=<%=ver%>" rel="stylesheet">
+<link href="<%=resource%>/web/css/safe.css?v=<%=ver%>" rel="stylesheet">
+</head>
+<body>
+<div id="doc">
+    <%include("web/inc/header")%>
+    <div id="bd">
+        <%if features["system"]["https"] == "1" and bdCcode ~= "UK" then%>
+        <div class="mod-set mod-macfilter" id="accessProtocol">
+            <div class="hd">
+                <h3><%:HTTPS开关%></h3>
+                <div class="switch">
+                    <a data-enable="1" class="btn-switch btn-switch-off" id="protocolswitch" href="#"></a>
+                </div>
+                <div class="protocolDiv"><%:访问协议控制介绍%><span class="helpIcon"></span></div>
+            </div>
+            <div class="protocolText bd">
+                <p class="protocolText-tit"><%:开启后，Web后台访问将强制重定向为https协议%></p >
+                <div class="protocolText-msg" style="display: none">
+                    <p class="protocolText-msg-tit"><%:什么是访问协议控制？%></p>
+                    <p style="padding: 0;"><span class="httpsHelp"></span></p>
+                </div>
+                 
+            </div>
+            
+        </div>
+        <%end%>
+        <%include("web/inc/password")%>
+    </div>
+    <%include("web/inc/footer")%>
+</div>
+<%include("web/inc/g.js")%>
+<%include("web/inc/password.js")%>
+<script>
+    //访问协议
+    $(".protocolDiv").click(function(){
+        var ip = '<%=lanip%>';
+        $(".httpsHelp").html("<%:访问协议控制是小米路由器提供给用户的一种与服务器交互时的安全性提升方案。打开此功能后，小米路由器Web后台的域名访问（{$ip}）和网址访问（router.miwifi.com）都会被强制重定向为https协议。%>".tmpl({ip}));
+        $(".protocolText-msg").fadeToggle();
+    })
+    $('#protocolswitch').on('click', function(e){
+            e.preventDefault();
+            var cklOn = $(this).attr('data-on') == 1 ? 0 : 1
+            var self = this;
+
+            var requestData = {
+                on: cklOn
+            };
+            if(cklOn == 1){
+                var dialog1 = $.dialog({
+                    id : "confirm",
+                    width: 390,
+                    title : "<%:提示%>",
+                    content : '<%:开启后访问协议将自动重定向为https，需要重新登录Web管理后台。确认开启？%>',
+                    ok: function(){
+                        set_access_force_https(requestData,cklOn,self);
+                    }
+                })
+            }else{
+                set_access_force_https(requestData,cklOn,self);
+            }
+            
+            
+        });
+
+        $.getJSON('<%=luci.dispatcher.build_url("api","xqsystem","get_access_force_https")%>')
+            .done(function( rsp ){
+                if ( rsp.code == 0 ) {
+                    if( rsp.on == 1 ){
+                        $('#protocolswitch')
+                            .removeClass('btn-switch-off')
+                            .addClass('btn-switch-on')
+                            .attr('data-on', '1');
+                    }else{
+                        $('#protocolswitch')
+                            .removeClass('btn-switch-on')
+                            .addClass('btn-switch-off')
+                            .attr('data-on', '0');
+                    }
+
+                }
+            });
+        function set_access_force_https(requestData,cklOn,self){
+            $.ajax({
+                url: '<%=luci.dispatcher.build_url("api", "xqsystem", "set_access_force_https")%>',
+                dataType: 'json',
+                timeout: 5000,
+                type: 'POST',
+                data: requestData,
+                success: function( rsp ){
+                    if( rsp.code === 0 ){
+                        if(cklOn == 1) {
+                            $(self)
+                                .removeClass('btn-switch-off')
+                                .addClass('btn-switch-on')
+                                .attr('data-on', '1');
+                            if(document.location.protocol == 'http:'){
+                                //window.location.href = window.location.href.replace("https","http");
+                                window.location.replace(window.location.href.replace("http","https"));
+                            }    
+                        }else {
+                            $(self)
+                                .removeClass('btn-switch-on')
+                                .addClass('btn-switch-off')
+                                .attr('data-on', '0');
+                        }
+                    } else {
+                        // if ( rsp.code !== 401) {
+                        //     var msg = StringH.encode4Html( rsp.msg );
+                        //     $.alert( msg ).lock();
+                        // }
+                    }
+                },
+                error: function() {
+                    $.alert( '<%:网络异常，请检查是否联网%>' );
+                }
+            });
+        }
+</script>
+</body>
+</html>

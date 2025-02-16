@@ -1,0 +1,3 @@
+config nginx 'main'
+	option force_https '0'
+	option client_max_body_size '50M'

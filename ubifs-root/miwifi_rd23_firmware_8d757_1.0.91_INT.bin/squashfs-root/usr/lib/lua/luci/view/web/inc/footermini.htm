@@ -1,0 +1,14 @@
+<%
+local XQSysUtil = require "xiaoqiang.util.XQSysUtil"
+local misc = XQSysUtil.getMiscHardwareInfo()
+local bbsUrl = misc.bbs
+local xqCountryCode = require "xiaoqiang.XQCountryCode"
+local ccode = xqCountryCode.getBDataCountryCode()
+local features = require("xiaoqiang.XQFeatures").FEATURES
+%>
+<div id="ft">
+    <%if features["system"]["dt_spec"] == "1" then%>
+    <div><span class="agreement"><%:用户协议%></span><span style="padding-left:15px;padding-right:15px">|</span><span class="privacy"><%:隐私政策%></span></div>
+    <%end%>
+    <p>&copy; 2024 <%:小米路由器%><p>
+</div>

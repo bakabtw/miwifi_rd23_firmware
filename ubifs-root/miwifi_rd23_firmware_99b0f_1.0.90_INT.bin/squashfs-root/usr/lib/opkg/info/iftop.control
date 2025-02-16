@@ -1,0 +1,13 @@
+Package: iftop
+Version: 2017-03-22-949ed0f7-1
+Depends: libc, libpcap, libncurses, libpthread
+Source: package/network/utils/iftop
+License: GPL-2.0
+Section: net
+Maintainer: Jo-Philipp Wich <jo@mein.io>
+Architecture: aarch64_cortex-a53
+Installed-Size: 28410
+Description:  iftop does for network usage what top(1) does for CPU usage. It 
+ listens to network traffic on a named interface and displays a 
+ table of current bandwidth usage by pairs of hosts. Handy for 
+ answering the question 'why is our ADSL link so slow?'.

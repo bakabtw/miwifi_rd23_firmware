@@ -1,0 +1,468 @@
+####################################################################
+#	hqos: 1:ON, 0:OFF                                          #
+#	txq_num: 16:default (only supports 64 queues for MT7981)   #
+#	scheduling: wrr: weighted round-robin, sp: strict priority #
+#	sch0_bw: sch0 bandwidth (unit:Kbps)                        #
+#	sch1_bw: sch1 bandwidth (unit:Kbps)                        #
+####################################################################
+config global global
+        option hqos 0
+	option txq_num 64
+	option scheduling 'wrr'
+	option sch0_bw 2500000
+	option sch1_bw 2500000
+
+####################################################################
+#	id: queue id                                               #
+#	minrate: percentage of min rate limit                      #
+#	maxrate: percentage of max rate limit                      #
+#	weight: weight for queue schedule                          #
+#	resv: buffer reserved for HW/SW path                       #
+####################################################################
+config queue q0
+        option id 0
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q1
+        option id 1
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q2
+        option id 2
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q3
+        option id 3
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q4
+        option id 4
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q5
+        option id 5
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q6
+        option id 6
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q7
+        option id 7
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q8
+        option id 8
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q9
+        option id 9
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q10
+        option id 10
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q11
+        option id 11
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q12
+        option id 12
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q13
+        option id 13
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q14
+        option id 14
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q15
+        option id 15
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q16
+        option id 16
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q17
+        option id 17
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q18
+        option id 18
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q19
+        option id 19
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q20
+        option id 20
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q21
+        option id 21
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q22
+        option id 22
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q23
+        option id 23
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q24
+        option id 24
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q25
+        option id 25
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q26
+        option id 26
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q27
+        option id 27
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q28
+        option id 28
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q29
+        option id 29
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q30
+        option id 30
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q31
+        option id 31
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q32
+        option id 32
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q33
+        option id 33
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q34
+        option id 34
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q35
+        option id 35
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q36
+        option id 36
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q37
+        option id 37
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q38
+        option id 38
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q39
+        option id 39
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q40
+        option id 40
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q41
+        option id 41
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q42
+        option id 42
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q43
+        option id 43
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q44
+        option id 44
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q45
+        option id 45
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q46
+        option id 46
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q47
+        option id 47
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q48
+        option id 48
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q49
+        option id 49
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q50
+        option id 50
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q51
+        option id 51
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q52
+        option id 52
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q53
+        option id 53
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q54
+        option id 54
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q55
+        option id 55
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q56
+        option id 56
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q57
+        option id 57
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q58
+        option id 58
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q59
+        option id 59
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q60
+        option id 60
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q61
+        option id 61
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q62
+        option id 62
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4
+
+config queue q63
+        option id 63
+        option minrate 0
+        option maxrate 0
+        option weight 4
+        option resv 4

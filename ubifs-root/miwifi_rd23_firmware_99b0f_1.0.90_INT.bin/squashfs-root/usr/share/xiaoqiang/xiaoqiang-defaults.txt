@@ -1,0 +1,43 @@
+bootcmd=bootxq
+bootdelay=5
+ipaddr=192.168.10.1
+serverip=192.168.10.100
+stdin=serial
+stdout=serial
+stderr=serial
+uart_en=0
+telnet_en=0
+boot_wait=off
+restore_defaults=0
+wl0_ssid=Xiaomi_5G
+wl1_ssid=Xiaomi
+wl0_radio=1
+wl1_radio=1
+model=RD23
+flag_boot_type=2
+mode=Router
+no_wifi_dev_times=0
+ethprime=eth1
+arch=arm
+baudrate=115200
+boot_auto=bootxq
+boot_fw0=run boot_rd_img;bootm
+boot_fw1=run boot_rd_img2;bootm
+boot_rd_img=nand read ${loadaddr} 0x2C0000 2000;image_blks 2048;nand read ${loadaddr} 0x2C0000 ${img_align_size}
+boot_rd_img2=nand read ${loadaddr} 0x20C0000 2000;image_blks 2048;nand read ${loadaddr} 0x20C0000 ${img_align_size}
+bootmenu_0=Startup system (Default)=mtkboardboot
+bootmenu_1=Upgrade firmware=mtkupgrade fw
+bootmenu_2=Upgrade ATF BL2=mtkupgrade bl2
+bootmenu_3=Upgrade ATF FIP=mtkupgrade fip
+bootmenu_4=Upgrade single image=mtkupgrade simg
+bootmenu_5=Load image=mtkload
+bootmenu_delay=5
+bootdelay=2
+ethaddr=00:0C:E7:11:22:33
+fdt_high=0x6c000000
+invaild_env=no
+loadaddr=0x46000000
+fdtcontroladdr=5ffc7600
+stderr=serial@11002000
+stdin=serial@11002000
+stdout=serial@11002000

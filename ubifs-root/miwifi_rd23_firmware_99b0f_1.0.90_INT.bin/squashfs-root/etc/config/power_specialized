@@ -1,0 +1,10 @@
+config mapping EU
+	option UA '4'
+	option TR '4'
+	option QA '5'
+	option PH '6'
+config mapping UK
+	option UA '4'
+	option TR '4'
+	option QA '5'
+	option PH '6'

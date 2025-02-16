@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+
+START=50
+PROG="/usr/sbin/port_service"
+
+[ ! -f "$PROG" ] && return
+
+start() {
+    local link_check_module
+
+    link_check_module="/lib/modules/$(uname -r)/linkcheck.ko"
+    [ -f "$link_check_module" ] && insmod "$link_check_module"
+
+    $PROG init
+    $PROG restart
+    return
+}
+
+stop() {
+    $PROG stop
+    return
+}

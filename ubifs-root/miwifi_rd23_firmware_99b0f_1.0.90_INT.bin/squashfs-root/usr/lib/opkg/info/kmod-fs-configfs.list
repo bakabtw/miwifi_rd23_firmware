@@ -1,0 +1,2 @@
+/lib/modules/5.4.171/configfs.ko
+/etc/modules.d/30-fs-configfs

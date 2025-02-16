@@ -1,0 +1,69 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+usage() {
+	echo "setmac <wl1|wl0|lan|wan|wan2> <mac>"
+	echo "example: setmac wl1 00:11:22:33:44:55"
+}
+
+WL1_OFFSET=0x4
+WL0_OFFSET=0xA
+
+value=$2
+#A=expr substr "$2" 1 2
+#B=expr substr "$2" 4 5
+#C=expr substr "$2" 7 8
+#D=expr substr "$2" 10 11
+#E=expr substr "$2" 13 14
+#F=expr substr "$2" 16 17
+
+A=${value:0:2}
+B=${value:3:2}
+C=${value:6:2}
+D=${value:9:2}
+E=${value:12:2}
+F=${value:15:2}
+
+factory_mtd_name="Factory"
+dev_name="$(find_mtd_part ${factory_mtd_name})"
+[ -z "$dev_name" ] && dev_name="/dev/mtdblock4"
+
+factory_mtd_sysfs=/sys/class/mtd/$(grep $factory_mtd_name /proc/mtd | awk -F: '{print $1}')
+[ $(($(cat "$factory_mtd_sysfs"/flags) & 0x400)) -eq 0 ] && {
+	echo "$factory_mtd_name partition is read-only."
+	exit 1
+}
+
+#echo "$A:$B:$C:$D:$E:$F"
+
+# save wireless mac address in Factory partition, Wi-Fi driver will read and apply it.
+# save ethernet mac address in Bdata partition, /etc/init.d/network script will read and apply it into uci.
+case $1 in
+	wl0)
+		echo -ne "\x$A\x$B\x$C\x$D\x$E\x$F" | \
+			dd of="$dev_name" bs=1 seek=$((WL0_OFFSET)) 2>&-
+		;;
+	wl1)
+		echo -ne "\x$A\x$B\x$C\x$D\x$E\x$F" | \
+			dd of="$dev_name" bs=1 seek=$((WL1_OFFSET)) 2>&-
+		;;
+	wan | eth)
+		bdata set ethaddr_wan="${value}"
+		bdata commit
+		bdata sync
+		;;
+	lan)
+		bdata set ethaddr="${value}"
+		bdata commit
+		bdata sync
+		;;
+	wan2)
+		bdata set ethaddr_wan2="${value}"
+		bdata commit
+		bdata sync
+		;;
+	*)
+		usage
+		;;
+esac

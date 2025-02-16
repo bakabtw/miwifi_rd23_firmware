@@ -1,0 +1,9 @@
+Package: datconf-lua
+Version: 1
+Depends: libc, datconf, liblua
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/datconf
+Section: MTK Properties
+Maintainer: Weijie Gao <weijie.gao@mediatek.com>
+Architecture: aarch64_cortex-a53
+Installed-Size: 5948
+Description:  Lua plugin for datconf

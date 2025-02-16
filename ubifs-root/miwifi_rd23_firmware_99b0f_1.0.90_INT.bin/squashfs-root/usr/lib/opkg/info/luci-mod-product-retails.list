@@ -1,0 +1,5 @@
+/usr/lib/lua/xiaoqiang/module/XQAPModule.lua
+/usr/lib/lua/xiaoqiang/XQFeatures.lua
+/usr/lib/lua/luci/model/network.lua
+/usr/lib/lua/xiaoqiang/util/XQWifiUtil.lua
+/usr/lib/lua/luci/controller/web/index.lua

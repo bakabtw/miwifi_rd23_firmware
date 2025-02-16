@@ -1,0 +1,8 @@
+Package: ated_ext
+Version: 2
+Depends: libc, libblkid, libnl-tiny
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/ated_ext
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 16256
+Description:  ated_ext Daemon

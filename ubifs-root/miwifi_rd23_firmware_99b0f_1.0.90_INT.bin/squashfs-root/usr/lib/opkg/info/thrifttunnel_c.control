@@ -1,0 +1,8 @@
+Package: thrifttunnel_c
+Version: 1-1.0
+Depends: libc, libubus, ubusd, libmbedtls
+Source: package/miwifi/thrifttunnel_c
+Section: opt
+Architecture: aarch64_cortex-a53
+Installed-Size: 2965
+Description:  the utility tunnel to service based ubus

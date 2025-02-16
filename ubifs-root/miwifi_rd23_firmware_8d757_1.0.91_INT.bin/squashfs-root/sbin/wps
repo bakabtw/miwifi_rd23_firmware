@@ -1,0 +1,136 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+	echo "wps [commands] [parameters]"
+	echo "	pbc"
+	echo "	status"
+	echo "	stamac"
+fi
+
+status=0
+status5=0
+status2=0
+
+is5g=0
+is2g=0
+ifname2g="`uci get misc.wireless.ifname_2G`"
+ifname5g="`uci get misc.wireless.ifname_5G`"
+cat /proc/net/dev | grep -w "${ifname5g}" > /dev/null 2>&1
+[ $? -eq 0 ] && is5g=1
+cat /proc/net/dev | grep -w "${ifname2g}" > /dev/null 2>&1
+[ $? -eq 0 ] && is2g=1
+
+case $1 in
+        "pbc")
+                case $2 in
+                        "wl0"|"wl1")
+                            iwpriv $2 set WscConfStatus=2
+                            iwpriv $2 set WscConfMode=6
+                            iwpriv $2 set WscMode=2
+                            iwpriv $2 set WscGetConf=1
+                            iwpriv $2 set mesh_normal_wps=1
+                            ;;
+                        "")
+                            if [ ${is5g} -eq 1 ]; then
+                                iwpriv $ifname5g set WscConfStatus=2
+                                iwpriv $ifname5g set WscConfMode=6
+                                iwpriv $ifname5g set WscMode=2
+                                iwpriv $ifname5g set WscGetConf=1
+                                iwpriv $ifname5g set  mesh_normal_wps=1
+                            fi
+
+                            if [ ${is2g} -eq 1 ]; then
+                                iwpriv $ifname2g set WscConfStatus=2
+                                iwpriv $ifname2g set WscConfMode=6
+                                iwpriv $ifname2g set WscMode=2
+                                iwpriv $ifname2g set WscGetConf=1
+                                iwpriv $ifname2g set mesh_normal_wps=1
+                            fi
+                            ;;
+                        *) echo "wps $1 $2 Parameter $2 is not supported";;
+                esac
+                ;;
+        "status")
+                status=0
+                status5=0
+                status2=0
+                if [ ${is5g} -eq 1 ]; then
+                    status5=`iwpriv $ifname5g get WscStatus | sed -n '1p' | awk -F ":" '{print $2}'`
+                fi
+                    
+                if [ ${is2g} -eq 1 ]; then
+                    status2=`iwpriv $ifname2g get WscStatus | sed -n '1p' | awk -F ":" '{print $2}'`
+                fi
+
+                if [ "${status5}" -eq 4 ] || [ "${status2}" -eq 4 ]; then
+                        status=4
+                elif [ "${status5}" -eq 0 ] || [ "${status2}" -eq 0 ]; then
+                        status=0
+                elif [ "${status5}" -eq 2 ] || [ "${status2}" -eq 2 ]; then
+                        status=2
+                elif [ "${status5}" -eq 1 ] || [ "${status2}" -eq 1 ]; then
+                        status=1
+                elif [ "${status5}" -eq 3 ] && [ "${status2}" -eq 3 ]; then
+                        status=3
+                fi
+                echo ${status}
+                ;;
+        "stamac")
+                status5=0
+                status2=0
+
+                if [ ${is5g} -eq 1 ]; then
+                    status5=`iwpriv $ifname5g get WscStatus | sed -n '1p' | awk -F ":" '{print $2}'`
+                fi
+
+                if [ ${is2g} -eq 1 ]; then
+                    status2=`iwpriv $ifname2g get WscStatus | sed -n '1p' | awk -F ":" '{print $2}'`
+                fi
+
+                if [ "${status5}" -eq 2 ]; then
+                    iwpriv $ifname5g get WscLatestStaMacAddr | sed -n '2p'
+                elif [ "${status2}" -eq 2 ]; then
+                    iwpriv $ifname2g get WscLatestStaMacAddr | sed -n '2p'
+                fi
+                ;;
+        "stop")
+                case $2 in
+                        "wl0"|"wl1")
+                                iwpriv $2 set WscConfStatus=1
+                                iwpriv $2 set WscStop=1
+                                iwpriv $2 set mesh_normal_wps=0
+                                ;;
+                        "")
+                                if [ ${is5g} -eq 1 ]; then
+                                    iwpriv $ifname5g set WscConfStatus=1
+                                    iwpriv $ifname5g set WscStop=1
+                                    iwpriv $ifname5g set mesh_normal_wps=0
+                                fi
+                                if [ ${is2g} -eq 1 ]; then
+                                    iwpriv $ifname2g set WscConfStatus=1
+                                    iwpriv $ifname2g set WscStop=1
+                                    iwpriv $ifname2g set mesh_normal_wps=0
+                                fi
+                                ;;
+                        *) echo "wps $1 $2 Parameter $2 is not supported";;
+                esac
+                ;;
+        "wl0"|"wl1")
+                case $2 in
+                        "pbc")
+                                iwpriv $1 set WscConfStatus=2
+                                iwpriv $1 set WscConfMode=6
+                                iwpriv $1 set WscMode=2
+                                iwpriv $1 set WscGetConf=1
+                                iwpriv $1 set mesh_normal_wps=1
+                                ;;
+                        "stop")
+                                iwpriv $1 set WscConfStatus=1
+                                iwpriv $1 set WscStop=1
+                                iwpriv $1 set mesh_normal_wps=0
+                                ;;
+                        *) echo "wps $1 $2 Parameter $2 is not supported";;
+                esac
+                ;;
+        *) echo "Parameter $1 is not supported";;
+esac
