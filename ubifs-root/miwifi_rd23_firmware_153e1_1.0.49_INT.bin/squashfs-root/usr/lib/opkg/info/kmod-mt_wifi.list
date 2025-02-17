@@ -1,0 +1,5 @@
+/lib/firmware/MT7981_iPAiLNA_EEPROM.bin
+/lib/modules/5.4.171/mtk_warp_proxy.ko
+/lib/modules/5.4.171/mt_wifi.ko
+/lib/firmware/MT7981_ePAeLNA_EEPROM.bin
+/etc/modules.d/mt_wifi

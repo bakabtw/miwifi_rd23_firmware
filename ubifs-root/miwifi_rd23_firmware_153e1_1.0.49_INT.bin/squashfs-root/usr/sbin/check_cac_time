@@ -1,0 +1,131 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+log_file="/var/log/check_cac.log"
+backup_config="/tmp/backup_wireless"
+
+bw_changed=0
+channel_changed=0
+bandwidth=0
+channel_arg="$1"
+bw_arg="$2"
+wl0_disabled=0
+
+update_log()
+{
+	echo "$1" >> "$log_file"
+}
+
+check_bandwidth()
+{
+	if [ "$1" == "20" ];then
+		bandwidth=0
+	elif [ "$1" == "40" ]; then
+		bandwidth=1
+	elif [ "$1" == "80" ]; then
+		bandwidth=2
+	elif [ "$1" == "160" ]; then
+		bandwidth=3
+	elif [ "$1" == "0" ]; then
+		bandwidth=3	
+	fi
+}
+
+parse_wifi_device()
+{
+	local device="$1"
+	local bw
+	
+	#only 5G band check cac
+	local band=$(uci -q get wireless.${device}.band)
+	config_get band "$device" band
+	if [ "$band" == "2G" ];then
+		return
+	fi
+
+	# parse wifi-device channel
+	config_get backup_channel "$device" channel
+	local channel=$(uci -q get wireless.${device}.channel)
+	if [ "$channel_arg" != "0" ]; then
+		channel="$channel_arg"
+		update_log "$device use channel_arg $channel_arg"
+
+		bw="$bw_arg"
+		update_log "$device use bw_arg $bw_arg"
+	else
+		bw=$(uci -q get wireless.${device}.bw)
+	fi
+
+	update_log "$device channel: $channel backup_channel: $backup_channel channel_arg: $channel_arg"
+	if [ "$channel" != "$backup_channel" -a "$channel" != "0" ]; then
+		channel_changed=1
+		update_log "$device channel changed from $backup_channel to $channel"
+	else
+		channel_changed=0
+	fi
+
+	# parse wifi-device bw
+	config_get backup_bw "$device" bw
+	# local bw=$(uci -q get wireless.${device}.bw)
+	update_log "$device bw: $bw backup_bw: $backup_bw bw_arg: $bw_arg"
+	if [ "$backup_bw" != "$bw" ]; then
+		bw_changed=1
+		update_log "$device bw changed from $backup_bw to $bw"
+	else
+		bw_changed=0
+	fi
+	
+	#if config change , monitor cac time
+	check_bandwidth "$bw"
+	support160m=$(uci -q get misc.wireless.support_160m)
+	if [ $bw_changed -gt 0 -o $channel_changed -gt 0 ]; then
+		update_log "old BW=$backup_bw, old channel = $backup_channel"
+		update_log "new BW=$bw, new channel = $channel"
+		
+		local cac_time=$(iwpriv wl0 rx MonitorDfsTime=$bandwidth-$channel | awk -F ':' '{print $2}')
+		update_log "monitor cac time = $cac_time"
+	elif [ "$bw_arg" == "0" -a "$channel_arg" == "0" -a "$support160m"x == "1"x ]; then
+		local cac_time=$(iwpriv wl0 rx MonitorDfsTime=3-0 | awk -F ':' '{print $2}')
+		update_log "bw_arg=0 and channel_arg=0 monitor cac time = $cac_time"
+	else
+		local cac_time=$(iwpriv wl0 get DfsCacTime | awk -F ':' '{print $2}')
+		update_log "160M bandwidth ,get real cac time = $cac_time"
+	fi
+
+	[ "$cac_time" = "DfsCacTime" ] && cac_time=0
+
+	echo "$cac_time"
+}
+
+rm -rf "$log_file"
+
+[ ! -f ${backup_config} ] && {
+	update_log "${backup_config} not exist, return"
+	return
+}
+
+parse_wifi_iface()
+{
+	local iface="$1"
+	local ifname=`uci -q get wireless.${iface}.ifname`
+
+	[ "$ifname" == "wl0" ] && {
+		wl0_disabled=`uci -q get wireless.${iface}.disabled`
+	}
+}
+
+config_load wireless
+config_foreach parse_wifi_iface wifi-iface
+
+update_log "wl0_disabled = $wl0_disabled"
+[ "$wl0_disabled" == "1" ] && {
+	echo "0"
+	update_log "cac_time = 0"
+	return
+}
+
+config_load "${backup_config}"
+config_foreach parse_wifi_device wifi-device
+
+#rm $backup_config >/dev/null 2>&1

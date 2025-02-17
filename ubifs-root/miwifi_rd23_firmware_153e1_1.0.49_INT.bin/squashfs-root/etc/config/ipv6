@@ -1,0 +1,19 @@
+config globals 'globals'
+    option ver '2'
+    option enabled '1'
+
+config wan 'wan6'
+    option mode 'off'
+    option automode '0'
+    list support_modes 'off'
+    list support_modes 'native'
+    list support_modes 'dhcpv6'
+    list support_modes 'pppoev6'
+    list support_modes 'static'
+    list support_modes 'pi_relay'
+    option automode_backup 'pi_relay'
+    option automode_pppoe_backup 'pi_relay'
+
+config lan 'lan6'
+    option mode '0'
+

@@ -1,0 +1,3 @@
+/usr/sbin/memtester
+/etc/init.d/systestctl
+/usr/sbin/memtestctl.helper

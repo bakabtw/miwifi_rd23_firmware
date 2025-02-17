@@ -1,0 +1,106 @@
+#!/bin/sh
+
+act=$1
+
+. /lib/functions.sh
+
+config_load mtkhqos
+config_get txq_num global txq_num 64
+config_get scheduling global scheduling "wrr"
+config_get sch0_bw global sch0_bw 0
+config_get sch1_bw global sch1_bw 0
+
+conlog(){
+    msg="$@"
+    #echo "mtkhqos: ${msg}" >/dev/console 
+    logger -t "miqos" -p3 "${msg}"
+}
+
+#donot rmmod hnat always
+#rmmod mtkhnat
+#if enable=0, disable qdma_sch & qdma_txq
+clean_hqos() 
+{
+	[ -f /sys/kernel/debug/hnat/qos_toggle ] && echo "1" > /sys/kernel/debug/hnat/qos_toggle
+	echo 0 "wrr" 2500000 > /sys/kernel/debug/hnat/qdma_sch0
+	echo 0 "wrr" 2500000 > /sys/kernel/debug/hnat/qdma_sch1
+	echo 0 0 0 0 2500000 4 4 > /sys/kernel/debug/hnat/qdma_txq0
+	for i in $(seq 10 $((txq_num - 1)))
+	do
+		echo 0 0 0 0 0 0 0 > /sys/kernel/debug/hnat/qdma_txq$i
+	done
+    
+    conlog "disable hqos done."
+
+    exit 0
+}
+
+disable_hqos(){
+    uci -q set mtkhqos.global.hqos=0
+    uci commit mtkhqos
+
+    [ -f /proc/sys/net/hwqos/enable ] && echo "0">/proc/sys/net/hwqos/enable
+    #[ -f /sys/kernel/debug/hnat/qos_toggle ] && echo "0" > /sys/kernel/debug/hnat/qos_toggle
+    [ -f /proc/sys/net/hwqos/m2q_ip ] && echo "ff">/proc/sys/net/hwqos/m2q_ip
+
+    clean_hqos
+    exit 0
+}
+
+enable_hqos()
+{
+    #clean rules if bandwidth is less then 0
+    [ "${sch0_bw}" -le 0 -o "${sch1_bw}" -le 0 ] && clean_hqos
+
+    echo "0 wrr 2500000" > /sys/kernel/debug/hnat/qdma_sch0
+    echo "0 wrr 2500000" > /sys/kernel/debug/hnat/qdma_sch1
+
+    [ -f /proc/sys/net/hwqos/enable ] && echo "1">/proc/sys/net/hwqos/enable
+    # [ -f /sys/kernel/debug/hnat/qos_toggle ] && echo "1" > /sys/kernel/debug/hnat/qos_toggle
+
+    conlog "enable hqos with band, sch0:${sch0_bw} and sch1:${sch1_bw}."
+}
+
+setup_queue() {
+	local queue_id queue_sch queue_minebl queue_maxebl
+	local queue_minrate queue_maxrate queue_resv minrate maxrate queue_weight
+
+	config_get queue_id $1 id 0
+	config_get queue_minrate $1 minrate 0
+	config_get queue_maxrate $1 maxrate 0
+	config_get queue_resv $1 resv 4
+	config_get queue_weight $1 weight 4
+    config_get queue_sch $1 sch 0
+
+    config_get queue_maxebl $1 maxebl 1
+    #config_get queue_minebl $1 minebl 0
+
+    queue_minebl=0
+
+	# check qid < txq max num or not for loop condition
+	[ "${queue_id}" -gt $((txq_num - 1)) ] && return 0
+	[ "${queue_id}" -lt 10 ] && return 0
+
+    #only support sch 0, 1
+    [ "${queue_sch}" != "0" ] && queue_sch=1
+
+	# if min rate = 0, set min enable = 0
+	# if max rate = 0, set max enable = 0
+	[ "${queue_minrate}" -eq "0" ] && queue_minebl=0
+	[ "${queue_maxrate}" -eq "0" ] && queue_maxebl=0
+
+    minrate=$queue_minrate
+	maxrate=$queue_maxrate
+
+	# set the queue of sch1 group(the upper half of total queues)
+	echo "${queue_sch} ${queue_minebl} ${minrate} ${queue_maxebl} ${maxrate} ${queue_weight} ${queue_resv}" >/sys/kernel/debug/hnat/qdma_txq${queue_id}
+    conlog "setup tx queue:${queue_id}, max:${maxrate}" 
+}
+
+##main
+[ "$act" == "clean" ] && clean_hqos
+[ "$act" == "disable" ] && disable_hqos
+
+enable_hqos
+
+config_foreach setup_queue queue

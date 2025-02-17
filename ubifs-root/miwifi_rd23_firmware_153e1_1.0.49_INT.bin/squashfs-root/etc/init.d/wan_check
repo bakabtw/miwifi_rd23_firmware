@@ -1,0 +1,25 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=98
+NAME=wancheck
+USE_PROCD=1
+PROG=/usr/sbin/wan_check_status
+
+
+start_service(){
+    [ -f "$PROG" ] && {
+	procd_open_instance
+	procd_set_param command ${PROG}
+	procd_set_param respawn
+	procd_close_instance
+    }
+}
+
+stop_service() {
+    service_stop ${PROG}
+}
+
+restart_service() {
+    service_reload ${PROG}
+}

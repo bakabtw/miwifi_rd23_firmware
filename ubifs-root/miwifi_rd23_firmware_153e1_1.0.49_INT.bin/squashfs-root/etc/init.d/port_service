@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+
+START=50
+PROG="/usr/sbin/port_service"
+
+[ ! -f "$PROG" ] && return
+
+start() {
+    local xqfac="1"
+    [ -f "/proc/xiaoqiang/ft_mode" ] && xqfac=$(cat /proc/xiaoqiang/ft_mode)
+
+    $PROG init
+    [ "$xqfac" = "1" ] && return
+    $PROG restart
+    return
+}
+
+stop() {
+    $PROG stop
+    return
+}

@@ -1,0 +1,10 @@
+Package: atf-mtk
+Version: 2.7-1
+Depends: libc, uboot-mtk
+Source: package/miwifi/system/atf-mtk
+Section: boot
+Architecture: aarch64_cortex-a53
+Installed-Size: 104
+Description:  Preloader and ATF for MTK platform.
+ ATF-bl2 is preloader, ATF-bl3 is Arm Trusted Zone firmware.
+ Currently used on RB06 RD03 WR30.

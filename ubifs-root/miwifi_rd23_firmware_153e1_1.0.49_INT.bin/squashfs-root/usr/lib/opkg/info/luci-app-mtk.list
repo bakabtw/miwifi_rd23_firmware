@@ -1,0 +1,5 @@
+/usr/lib/lua/l1dat_parser.lua
+/usr/lib/lua/wps_action.lua
+/sbin/l1dat
+/usr/lib/lua/mtkwifi.lua
+/usr/lib/lua/ioctl_helper.so

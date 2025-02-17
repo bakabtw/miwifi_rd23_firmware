@@ -1,0 +1,10 @@
+Package: kmod-ip6-tunnel
+Version: 5.4.171-1
+Depends: kernel (=5.4.171-1-29e79c03119c5ce5808795d4ff68cad6), kmod-iptunnel6
+Source: package/kernel/linux
+License: GPLv2
+Section: kernel
+Status: unknown hold not-installed
+Architecture: aarch64_cortex-a53
+Installed-Size: 18180
+Description:  Kernel modules for IPv6-in-IPv6 and IPv4-in-IPv6 tunnelling

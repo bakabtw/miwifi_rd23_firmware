@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MiWiFi User License Agreement</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0,user-scalable=no" />
+        <link href="../css/help.css" rel="stylesheet" type="text/css"/>
+        <style>
+            a:link {
+                text-decoration: none;
+                color: blue
+            }
+
+            a:active,
+            a:hover,
+            a:visited {
+                text-decoration: none;
+                color: black
+            }
+        </style>
+        <script type="text/javascript">
+            try{
+                // 插件端按语言显示隐私协议，ROM端按国家码存储隐私协议，且插件端与ROM端支持的语言不完全匹配，因此需要进行一次转换
+                // 非欧盟国家，统一显示英语GDPR
+                var langArr = ['ar','cs','de','el','en','es','es_us','fi','fr','he','hu','id','it','ja','ko','nb','nl','pl','pt','pt_pt','ro','ru','sk','sv','th','tr','uk','vi','zh','zh_hk','zh_tw']
+                var ccodeArr = ['EN','CZ','DE','GR','EN','ES','EN','FI','FR','EN','HU','EN','IT','EN','EN','NO','NL','PL','PT','PT','RO','EN','SK','SE','EN','EN','EN','EN','EN','EN','EN']
+                var lang = window.location.search.split("?")[1].split("=")[1].toLowerCase()
+                var index = langArr.indexOf(lang)
+                if( index != -1 ){
+                    ccode = ccodeArr[index].toLowerCase()
+                    window.location.href = `./gdpr_${ccode}_agreement.html`
+                }else{
+                    console.log('There is no such language')
+                }
+            }catch{
+                console.log('default language en')
+            }
+        </script>
+    </head>
+    <body>
+        <div class="note-wrapper">
+            <div id="switch" class="switch">
+                <div class="label"><span id="langName"></span>&nbsp;<span class="triangle">
+                    </span></span>
+                </div>
+                <ul class="list1">
+                    <li data-lang="de">Deutsch</li>
+                    <li data-lang="en">English (United Kingdom)</li>
+                    <li data-lang="es">Español (España)</li>
+                    <li data-lang="fr">Français</li>
+                    <li data-lang="it">Italiano</li>
+                    <li data-lang="pl">Polski</li>
+                    <li data-lang="pt">Português</li>
+                    <li data-lang="bg">Български</li>
+                    <li data-lang="cz">čeština</li>
+                    <li data-lang="dk">Dansk</li>
+                    <li data-lang="ee">Eesti</li>
+                    <li data-lang="fi">suomi</li>
+                    <li data-lang="gr">Ελληνικά</li>
+                    <li data-lang="hr">Hrvatski</li>
+                    <li data-lang="hu">magyar</li>
+                    <li data-lang="lt">Lietuviškai</li>
+                    <li data-lang="lv">Latviešu</li>
+                    <li data-lang="nl">Nederlands</li>
+                    <li data-lang="no">Norsk</li>
+                    <li data-lang="se">Svenska</li>
+                    <li data-lang="si">Slovenščina</li>
+                    <li data-lang="sk">slovenčina</li>
+                </ul>
+            </div>
+
+            <div class='templateDiv'></div>
+        </div>
+        <script src="../../js/jquery-1.8.3.js" type="text/javascript"></script>
+        <script src="../../js/help.js" type="text/javascript"></script>
+        <script src="../../js/init_info.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            (function() {
+                var langNameMap = {
+                    "de": "Deutsch",
+                    "en": "English",
+                    "es": "Español (España)",
+                    "fr": "Français",
+                    "it": "Italiano",
+                    "pl": "Polski",
+                    "pt": "Português",
+                    "bg": "Български",
+                    "cz": "čeština",
+                    "dk": "Dansk",
+                    "ee": "Eesti",
+                    "fi": "suomi",
+                    "gr": "Ελληνικά",
+                    "hr": "Hrvatski",
+                    "hu": "magyar",
+                    "lt": "Lietuviškai",
+                    "lv": "Latviešu",
+                    "nl": "Nederlands",
+                    "no": "Norsk",
+                    "se": "Svenska",
+                    "si": "Slovenščina",
+                    "sk": "slovenčina",
+                }
+
+                var doc_ols = document.getElementsByTagName("ol");
+
+                for ( i=0; i<doc_ols.length; i++) {
+
+                    var ol_start = doc_ols[i].getAttribute("start") - 1;
+                    doc_ols[i].setAttribute("style", "counter-reset:ol_counter " + ol_start + ";");
+
+                }
+
+                var filename = window.location.pathname.split('/').pop();
+                var countrycode = filename.split('.')[0].split('_')[1];
+                var langLabelName = langNameMap[countrycode];
+                var privacypath = "../privacy/gdpr_" + countrycode + "_privacy.html";
+                var templatepath = "../../templates/agreement/" + countrycode + ".html";
+                $(".templateDiv").load(templatepath, function(){
+                    $("#langName").text(langLabelName);
+                    $(".privacy-link").attr("href", privacypath);
+                    $("a:not(.privacy-link)").on("click", function() {
+                        event.preventDefault();
+                    });
+                });
+
+            })();
+
+        </script>
+    <style>
+        <!--
+         /* Font Definitions */
+         @font-face
+            {font-family:Wingdings;
+            panose-1:5 0 0 0 0 0 0 0 0 0;}
+        @font-face
+            {font-family:"MS Mincho";
+            panose-1:2 2 6 9 4 2 5 8 3 4;}
+        @font-face
+            {font-family:宋体;
+            panose-1:2 1 6 0 3 1 1 1 1 1;}
+        @font-face
+            {font-family:黑体;
+            panose-1:2 1 6 9 6 1 1 1 1 1;}
+        @font-face
+            {font-family:"Cambria Math";
+            panose-1:2 4 5 3 5 4 6 3 2 4;}
+        @font-face
+            {font-family:Calibri;
+            panose-1:2 15 5 2 2 2 4 3 2 4;}
+        @font-face
+            {font-family:"\@宋体";
+            panose-1:2 1 6 0 3 1 1 1 1 1;}
+        @font-face
+            {font-family:"\@黑体";
+            panose-1:2 1 6 0 3 1 1 1 1 1;}
+        @font-face
+            {font-family:"\@MS Mincho";
+            panose-1:2 2 6 9 4 2 5 8 3 4;}
+         /* Style Definitions */
+         p.MsoNormal, li.MsoNormal, div.MsoNormal
+            {margin:0cm;
+            margin-bottom:.0001pt;
+            text-align:justify;
+            text-justify:inter-ideograph;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;}
+        h1
+            {mso-style-link:"标题 1 字符";
+            margin-top:12.0pt;
+            margin-right:0cm;
+            margin-bottom:0cm;
+            margin-left:0cm;
+            margin-bottom:.0001pt;
+            text-align:justify;
+            text-justify:inter-ideograph;
+            page-break-after:avoid;
+            font-size:16.0pt;
+            font-family:"Cambria",serif;
+            font-weight:normal;}
+        p.MsoCommentText, li.MsoCommentText, div.MsoCommentText
+            {mso-style-link:"批注文字 字符";
+            margin:0cm;
+            margin-bottom:.0001pt;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;}
+        p.MsoHeader, li.MsoHeader, div.MsoHeader
+            {mso-style-link:"页眉 字符";
+            margin:0cm;
+            margin-bottom:.0001pt;
+            text-align:center;
+            layout-grid-mode:char;
+            border:none;
+            padding:0cm;
+            font-size:9.0pt;
+            font-family:"Calibri",sans-serif;}
+        p.MsoFooter, li.MsoFooter, div.MsoFooter
+            {mso-style-link:"页脚 字符";
+            margin:0cm;
+            margin-bottom:.0001pt;
+            layout-grid-mode:char;
+            font-size:9.0pt;
+            font-family:"Calibri",sans-serif;}
+        a.privacy-link:link, span.MsoHyperlink
+            {color:blue;
+            text-decoration:underline;}
+        a.privacy-link:visited, span.MsoHyperlinkFollowed
+            {color:#954F72;
+            text-decoration:underline;}
+        a:not(.privacy-link):link,
+        a:not(.privacy-link):active,
+        a:not(.privacy-link):hover,
+        a:not(.privacy-link):visited
+            {text-decoration: none;
+            color: #000;
+            cursor: text;}
+        p.MsoCommentSubject, li.MsoCommentSubject, div.MsoCommentSubject
+            {mso-style-link:"批注主题 字符";
+            margin:0cm;
+            margin-bottom:.0001pt;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;
+            font-weight:bold;}
+        p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+            {mso-style-link:"批注框文本 字符";
+            margin:0cm;
+            margin-bottom:.0001pt;
+            text-align:justify;
+            text-justify:inter-ideograph;
+            font-size:9.0pt;
+            font-family:"Calibri",sans-serif;}
+        p.MsoRMPane, li.MsoRMPane, div.MsoRMPane
+            {margin:0cm;
+            margin-bottom:.0001pt;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;}
+        p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+            {margin:0cm;
+            margin-bottom:.0001pt;
+            text-align:justify;
+            text-justify:inter-ideograph;
+            text-indent:21.0pt;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;}
+        span.a
+            {mso-style-name:"批注文字 字符";
+            mso-style-link:批注文字;}
+        span.a0
+            {mso-style-name:"批注主题 字符";
+            mso-style-link:批注主题;
+            font-weight:bold;}
+        span.a1
+            {mso-style-name:"批注框文本 字符";
+            mso-style-link:批注框文本;}
+        span.a2
+            {mso-style-name:"页眉 字符";
+            mso-style-link:页眉;}
+        span.a3
+            {mso-style-name:"页脚 字符";
+            mso-style-link:页脚;}
+        span.1
+            {mso-style-name:"标题 1 字符";
+            mso-style-link:"标题 1";
+            font-family:"Cambria",serif;
+            color:#365F91;}
+        p.10, li.10, div.10
+            {mso-style-name:正文1;
+            margin:0cm;
+            margin-bottom:.0001pt;
+            text-align:justify;
+            text-justify:inter-ideograph;
+            font-size:10.5pt;
+            font-family:"Calibri",sans-serif;
+            color:black;
+            border:none;}
+        span.a4
+            {mso-style-name:无;}
+        span.apple-converted-space
+            {mso-style-name:apple-converted-space;}
+        .MsoChpDefault
+            {font-family:"Calibri",sans-serif;}
+         /* Page Definitions */
+         @page WordSection1
+            {size:595.3pt 841.9pt;
+            margin:72.0pt 90.0pt 72.0pt 90.0pt;
+            layout-grid:15.6pt;}
+        div.WordSection1
+            {page:WordSection1;}
+         /* List Definitions */
+         ol
+            {margin-bottom:0cm;}
+        ul
+            {margin-bottom:0cm;}
+        -->
+        </style>
+        
+      
+    </body>
+
+</html>

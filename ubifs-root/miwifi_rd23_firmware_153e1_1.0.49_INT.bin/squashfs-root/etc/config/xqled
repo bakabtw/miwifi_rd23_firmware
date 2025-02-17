@@ -1,0 +1,118 @@
+config driver driver
+    option name 'sysfs'
+    option profile 'RD23'
+
+config env_var 'handle_event'
+    option name 'HANDLE_EVENT'
+    option value '1'
+
+config env_var 'default_color'
+    option name 'DEFAULT_COLOR'
+    option value '1'
+
+config action 'sys_yellow_on'
+    option led 'led_yellow'
+    option options 'trigger brightness'
+    option trigger 'none'
+    option brightness '1'
+
+config action 'sys_yellow_off'
+    option led 'led_yellow'
+    option options 'trigger brightness'
+    option trigger 'none'
+    option brightness '0'
+
+config action 'sys_yellow_flash_slow'
+    option led 'led_yellow'
+    option options 'trigger delay_on delay_off'
+    option trigger 'timer'
+    option delay_on '500'
+    option delay_off '500'
+
+config action 'sys_yellow_flash_fast'
+    option led 'led_yellow'
+    option options 'trigger delay_on delay_off'
+    option trigger 'timer'
+    option delay_on '250'
+    option delay_off '250'
+
+config action 'sys_blue_on'
+    option led 'led_blue'
+    option options 'trigger brightness'
+    option trigger 'none'
+    option brightness '1'
+
+config action 'sys_blue_off'
+    option led 'led_blue'
+    option options 'trigger brightness'
+    option trigger 'none'
+    option brightness '0'
+
+config action 'sys_blue_flash_slow'
+    option led 'led_blue'
+    option options 'trigger delay_on delay_off'
+    option trigger 'timer'
+    option delay_on '500'
+    option delay_off '500'
+
+config action 'sys_blue_flash_fast'
+    option led 'led_blue'
+    option options 'trigger delay_on delay_off'
+    option trigger 'timer'
+    option delay_on '250'
+    option delay_off '250'
+
+config func 'sys_booting'
+    option action 'sys_blue_off sys_yellow_on'
+
+config func 'sys_init'
+    option action 'sys_blue_off sys_yellow_flash_slow'
+
+config func 'sys_ok'
+    option action 'sys_blue_off sys_yellow_flash_slow'
+
+config func 'sys_off'
+    option action 'sys_blue_off sys_yellow_off'
+
+config func 'sys_on'
+    option action 'sys_blue_on sys_yellow_off'
+
+config func 'sys_ota'
+    option action 'sys_blue_off sys_yellow_flash_fast'
+
+config func 'systest_ongo'
+    option action 'sys_blue_flash_fast sys_yellow_off'
+
+config func 'systest_fail'
+    option action 'sys_blue_off sys_yellow_flash_fast'
+
+config func 'led_sys_blue'
+    option action 'sys_blue_on'
+
+config func 'led_sys_yellow'
+    option action 'sys_yellow_on'
+
+config func 'meshing'
+    option action 'sys_blue_off sys_blue_flash_fast'
+
+config func 'mesh_join'
+    option action 'sys_blue_off sys_yellow_flash_fast'
+
+config func 'mesh_discovery'
+    option action 'sys_yellow_off sys_blue_flash_slow'
+
+config func 'mesh_finish'
+    option action 'sys_yellow_off sys_blue_on'
+
+config func 'link_down'
+    option action 'sys_yellow_on sys_blue_off'
+
+config func 'internet_fail'
+    option action 'sys_yellow_on sys_blue_off'
+
+config func 'internet_ok'
+    option action 'sys_yellow_off sys_blue_on'
+
+config func 'user_defined'
+    option argv 'BRIGHTNESS=$CUS_BRI REPEAT=-1'
+    option action '$CUS_ACT'

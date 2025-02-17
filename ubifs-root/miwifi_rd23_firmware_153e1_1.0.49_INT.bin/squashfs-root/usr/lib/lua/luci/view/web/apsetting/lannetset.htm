@@ -1,0 +1,37 @@
+<%
+--[[
+    Info    路由器局域网设置
+]]--
+local ver = require("xiaoqiang.XQVersion").webVersion
+local features = require("xiaoqiang.XQFeatures").FEATURES
+%>
+<%include("web/inc/head")%>
+<title><%:小米路由器%></title>
+<meta name="viewport" content="width=1200">
+<link href="<%=resource%>/web/css/bc.css?v=<%=ver%>" rel="stylesheet">
+<link href="<%=resource%>/web/css/proset.css?v=<%=ver%>" rel="stylesheet">
+<!-- <link href="<%=resource%>/web/css/ddns.css?v=<%=ver%>" rel="stylesheet"> -->
+<link href="<%=resource%>/web/css/wancheck.css?v=<%=ver%>" rel="stylesheet">
+<meta name="referrer" content="never">
+</head>
+<body>
+<div id="doc">
+    <%include("web/inc/header")%>
+    <div id="bd">
+        <!--lan口聚合  -->
+        <%if features["apps"]["lanPort"] == "1" then%>
+        <%include("web/inc/wanCheck")%>
+        <%end%>
+    </div>
+
+    <%include("web/inc/footer")%>
+
+</div>
+
+<%include("web/inc/g.js")%>
+<%if features["apps"]["lanPort"] == "1" then%>
+<%include("web/inc/wanCheck.js")%>
+<%end%>
+
+</body>
+</html>

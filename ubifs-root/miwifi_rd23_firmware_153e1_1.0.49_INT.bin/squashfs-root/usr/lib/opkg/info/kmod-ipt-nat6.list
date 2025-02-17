@@ -1,0 +1,3 @@
+/lib/modules/5.4.171/ip6table_nat.ko
+/lib/modules/5.4.171/ip6t_NPT.ko
+/etc/modules.d/88-ipt-nat6

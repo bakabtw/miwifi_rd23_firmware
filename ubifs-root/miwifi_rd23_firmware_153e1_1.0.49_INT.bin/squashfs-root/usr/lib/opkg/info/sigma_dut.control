@@ -1,0 +1,8 @@
+Package: sigma_dut
+Version: 1
+Depends: libc, libpthread, librt
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/sigma_dut_v9.0.0
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 96427
+Description:  SIGMA_DUT

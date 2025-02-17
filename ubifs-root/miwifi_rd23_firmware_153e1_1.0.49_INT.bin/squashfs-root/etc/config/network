@@ -1,0 +1,87 @@
+
+config device 'eth0'
+        option name 'eth0'
+
+config device 'eth1'
+        option name 'eth1'
+
+config switch 'switch0'
+        option name 'switch0'
+        option enable_vlan '1'
+
+config switch_vlan 'vlan1'
+        option device 'switch0'
+        option vlan '1'
+        option vid '1'
+        option ports '0 6t'
+
+config switch_vlan 'vlan2'
+        option device 'switch0'
+        option vlan '2'
+        option vid '2'
+        option ports '1 6t'
+
+config switch_vlan 'vlan3'
+        option device 'switch0'
+        option vlan '3'
+        option vid '3'
+        option ports '2 6t'
+
+config switch_vlan 'vlan4'
+        option device 'switch0'
+        option vlan '4'
+        option vid '4'
+        option ports '3 6t'
+
+config interface
+        option ifname 'eth0'
+
+config interface
+        option ifname 'eth1'
+
+config interface 'eth0_1'
+        option ifname 'eth0.1'
+
+config interface 'eth0_2'
+        option ifname 'eth0.2'
+
+config interface 'eth0_3'
+        option ifname 'eth0.3'
+
+config interface 'eth0_4'
+        option ifname 'eth0.4'
+
+config interface 'loopback'
+        option ifname 'lo'
+        option proto 'static'
+        option ipaddr '127.0.0.1'
+        option netmask '255.0.0.0'
+
+config interface 'lan'
+        option ifname 'eth0.1 eth0.2 eth0.3 eth0.4'
+        option force_link '1'
+        option type 'bridge'
+        option proto 'static'
+        option ipaddr '192.168.31.1'
+        option netmask '255.255.255.0'
+        option multicast_querier '0'
+        option igmp_snooping '0'
+        option ip6assign '64'
+
+config alias 'lan_ipv6_alias'
+        option interface 'lan'
+        option proto 'static'
+        option ip6addr 'fd00:6969:6969::1'
+
+config interface 'wan'
+        option ifname ''
+        option proto 'dhcp'
+        option ipv6 '1'
+        option wantype 'eth'
+
+config interface 'miot'
+        option ifname 'wl13'
+        option type 'bridge'
+        option proto 'static'
+        option ipaddr '192.168.32.1'
+        option netmask '255.255.255.0'

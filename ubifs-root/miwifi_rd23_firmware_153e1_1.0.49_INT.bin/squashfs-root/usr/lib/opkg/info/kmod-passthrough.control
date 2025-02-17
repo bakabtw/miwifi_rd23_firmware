@@ -1,0 +1,8 @@
+Package: kmod-passthrough
+Version: 5.4.171+1.0-0
+Depends: kernel (=5.4.171-1-29e79c03119c5ce5808795d4ff68cad6)
+Source: package/miwifi/ipv6_passthrough
+Section: kernel
+Architecture: aarch64_cortex-a53
+Installed-Size: 7415
+Description:  IPv6 Passthrough Kernel Module

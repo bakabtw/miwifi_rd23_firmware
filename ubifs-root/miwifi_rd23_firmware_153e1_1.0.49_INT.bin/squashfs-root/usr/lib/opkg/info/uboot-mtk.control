@@ -1,0 +1,9 @@
+Package: uboot-mtk
+Version: 2022.01-rc4-1
+Depends: libc, base-files, xiaoqiang-util
+Source: package/miwifi/system/uboot-mtk
+Section: boot
+Architecture: aarch64_cortex-a53
+Installed-Size: 104
+Description:  U-Boot for MTK platforms.
+ Currently used on MiWiFi R3P R3G R4 RB01 RB03 RB06 RD03 WR30 RD23.

@@ -1,0 +1,8 @@
+Package: mtkhnat_util
+Version: 1-unknown
+Depends: libc
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/mtkhnat_util
+Section: net
+Architecture: aarch64_cortex-a53
+Installed-Size: 1977
+Description:  mtk hnat util to init hnat module

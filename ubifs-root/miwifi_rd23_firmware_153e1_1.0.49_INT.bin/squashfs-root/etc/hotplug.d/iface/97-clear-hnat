@@ -1,0 +1,12 @@
+#!/bin/sh
+logger -p notice -t "hotplug.d" "97-clear-hnat: run because of $INTERFACE $ACTION"
+[ "$ACTION" = "ifup" ] && {
+            if [ ${INTERFACE} = "ppd_if" ]; then
+                ppd_if=$(uci -q get network.ppd_if.ifname)
+                echo ${ppd_if} >/sys/kernel/debug/hnat/hnat_ppd_if
+            fi
+}
+
+[ "$ACTION" = "ifdown" ] && [ "$INTERFACE" = "wan" ] && {
+    echo 3 -1 >/sys/kernel/debug/hnat/hnat_entry
+}

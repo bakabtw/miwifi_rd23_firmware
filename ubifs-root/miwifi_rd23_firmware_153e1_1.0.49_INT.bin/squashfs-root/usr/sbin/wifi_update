@@ -1,0 +1,762 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+log_file="/var/log/wifi_update.log"
+backup_config="/tmp/backup_wireless"
+
+txpwr_changed=0
+txbf_changed=0
+ax_changed=0
+bw_changed=0
+channel_changed=0
+channel_set_2G=0
+channel_set_5G=0
+bw_set_2G=0
+bw_set_5G=0
+
+update_log()
+{
+	echo "$1" >> "$log_file"
+	logger -t wifi_update "$1"
+}
+
+iwpriv() {
+	[ -f "/tmp/wifi.debug" ] && echo iwpriv "$@" >> $log_file
+	/usr/sbin/iwpriv "$@"
+}
+
+__scan_skip_chan()
+{
+	local mode=$(uci -q get xiaoqiang.common.NETMODE)
+	if [ "$mode" != "wifiapmode" -a "$mode" != "whc_re" ]; then
+		/usr/sbin/lib_wifi_util.sh skip_scan_channel 1
+	fi
+}
+
+__update_phy_cfg()
+{
+	local device="$1"
+	local ifname="$2"
+	local band=$(uci -q get wireless.${device}.band)
+	local need_downup=0
+
+	update_log "__update_phy_cfg ifname = $ifname"
+	
+	if [ $txpwr_changed -gt 0 ]; then
+		local txpwr=$(uci -q get wireless.${device}.txpwr)
+
+		if [ "$txpwr" == "max" ]; then
+			iwpriv $ifname set TxPower=100
+		elif [ "$txpwr" == "mid" ]; then
+			iwpriv $ifname set TxPower=75
+		else
+			iwpriv $ifname set TxPower=50
+		fi
+		need_downup=1
+		update_log "__update_phy_cfg TxPower = $txpwr"
+	fi
+	
+	if [ $channel_changed -gt 0 ]; then
+		local channel=$(uci -q get wireless.${device}.channel)
+		local channel_operate=1
+
+		if [ "$band" == "2G" ]; then
+			if [ $channel_set_2G -gt 0 ]; then
+				channel_operate=0
+			else
+				channel_set_2G=1
+			fi
+		elif [ "$band" == "5G" ]; then
+			if [ $channel_set_5G -gt 0 ]; then
+				channel_operate=0
+			else
+				channel_set_5G=1
+			fi
+		fi
+
+		if [ $channel_operate -gt 0 ]; then
+			if [ "$channel" == "0" ]; then
+				local real_bw=$(uci -q get wireless.${device}.bw)
+				update_log "__update_phy_cfg real_bw=$real_bw band=$band bw_changed=$bw_changed"
+				if [ "$bw_changed" -gt 0 -a "$band" == "5G" -a "$real_bw" == "0" ];  then
+					update_log "__update_phy_cfg set $ifname AutoChannelSel=8"
+					iwpriv $ifname set AutoChannelSel=8
+				else
+					iwpriv $ifname set AutoChannelSel=3
+				fi
+			else
+				if [ $bw_changed -gt 0 -a "$band" == "5G" ]; then
+					iwpriv $ifname set DfsSkipSaveCacChan=1
+					update_log "__update_phy_cfg channel and bw changed, set DfsSkipSaveCacChan=1"
+				fi
+				iwpriv $ifname set Channel="$channel"
+			fi
+			update_log "__update_phy_cfg channel = $channel"
+		fi
+	fi
+
+	if [ $bw_changed -gt 0 ]; then
+		local bw=$(uci -q get wireless.${device}.bw)
+		local bw_operate=1
+
+		if [ "$band" == "2G" ]; then
+			if [ $bw_set_2G -gt 0 ]; then
+				bw_operate=0
+			else
+				bw_set_2G=1
+			fi
+		elif [ "$band" == "5G" ]; then
+			if [ $bw_set_5G -gt 0 ]; then
+				bw_operate=0
+			else
+				bw_set_5G=1
+			fi
+		fi
+
+		if [ $bw_operate -gt 0 ]; then
+			if [ "$band" == "2G" ]; then
+				if [ "$bw" == "0" ]; then
+					iwpriv $ifname set HtBssCoex=1
+					iwpriv $ifname set HtBw=1
+				elif [ "$bw" == "20" ]; then
+					iwpriv $ifname set HtBssCoex=0
+					iwpriv $ifname set HtBw=0
+				else
+					iwpriv $ifname set HtBssCoex=0
+					iwpriv $ifname set HtBw=1
+				fi
+			else
+				if [ $channel_changed -gt 0 ]; then
+					iwpriv $ifname set DfsSkipSaveCacChan=0
+					update_log "__update_phy_cfg channel and bw changed, set DfsSkipSaveCacChan=0"
+				fi
+				if [ "$bw" == "0" ]; then
+					iwpriv $ifname set HtBw=1
+					iwpriv $ifname set VhtBw=2
+				elif [ "$bw" == "80" ]; then
+					iwpriv $ifname set VhtBw=1
+					iwpriv $ifname set HtBw=1
+				elif [ "$bw" == "40" ]; then
+					iwpriv $ifname set VhtBw=0
+					iwpriv $ifname set HtBw=1
+				else
+					iwpriv $ifname set VhtBw=0
+					iwpriv $ifname set HtBw=0
+				fi
+			fi
+			need_downup=1
+			update_log "__update_phy_cfg bw = $bw"
+		fi
+	fi
+
+	if [ $ax_changed -gt 0 ]; then
+		local ax=$(uci -q get wireless.${device}.ax)
+		need_downup=1
+		update_log "__update_phy_cfg ax = $ax"
+		if [ "$ax" == "0" ]; then
+			if [ "$band" == "2G" ]; then
+				iwpriv $ifname set WirelessMode=9
+			else
+				iwpriv $ifname set WirelessMode=14
+			fi
+		else
+			if [ "$band" == "2G" ]; then
+				iwpriv $ifname set WirelessMode=16
+			else
+				iwpriv $ifname set WirelessMode=17
+			fi
+		fi
+	fi
+	
+	if [ $txbf_changed -gt 0 ]; then
+		local txbf=$(uci -q get wireless.${device}.txbf)
+		need_downup=1
+		update_log "__update_phy_cfg txbf = $txbf"
+		if [ "$txbf" == "3" ]; then
+			iwpriv $ifname set MuMimoDlEnable=1
+			iwpriv $ifname set MuMimoUlEnable=0
+			iwpriv $ifname set MUTxRxEnable=1
+		elif [ "$txbf" == "0" ]; then
+			iwpriv $ifname set MuMimoDlEnable=0
+			iwpriv $ifname set MuMimoUlEnable=0
+			iwpriv $ifname set MUTxRxEnable=0
+		else
+			iwpriv $ifname set MuMimoDlEnable=0
+			iwpriv $ifname set MuMimoUlEnable=0
+			iwpriv $ifname set MUTxRxEnable=0
+		fi
+	fi
+
+	local miot_if=$(uci get misc.wireless.iface_miot_2g_ifname)
+	local miot_upstatus=1
+	if [ "$miot_if" == "$ifname" ]; then
+		local miot_bindstatus=$(uci -q get wireless.miot_2G.bindstatus)
+		local miot_userswitch=$(uci -q get wireless.miot_2G.userswitch)
+		if [ "1"x != "$miot_bindstatus"x -o "1"x != "$miot_userswitch"x ]; then
+			update_log "__update_phy_cfg $ifname bindstatus=$miot_bindstatus userswitch=$miot_userswitch"
+			miot_upstatus=0
+		fi
+	fi
+
+	## some phy mib change ,need down up
+	if [ $need_downup -gt 0 ]; then
+		update_log "__update_phy_cfg ifname = $ifname need_downup"
+		ifconfig $ifname down
+		ifconfig $ifname up
+
+		[ "$miot_if" == "$ifname" ] && {
+			local ax=$(uci -q get wireless.${device}.ax)
+			if [ "$ax" == "0" ]; then
+				iwpriv $ifname set WirelessMode=9
+			else
+				iwpriv $ifname set WirelessMode=16
+			fi
+
+			[ "$miot_upstatus" == "0" ] && {
+				ifconfig $ifname down
+			}
+		}
+	fi
+
+	update_log "__update_phy_cfg ifname = $ifname [END]"
+}
+
+__update_wifi_cfg()
+{
+	local ifname="$1"
+	local ssid="$2"
+	local encryption="$3"
+	local key="$4"
+
+	case "$encryption" in
+	none)
+		iwpriv $ifname set AuthMode=OPEN
+		iwpriv $ifname set EncrypType=NONE
+		iwpriv $ifname set PMFMFPC=0
+		iwpriv $ifname set PMFMFPR=0
+		iwpriv $ifname set PMFSHA256=0
+		;;
+	psk2)
+		iwpriv $ifname set AuthMode=WPA2PSK
+		iwpriv $ifname set EncrypType=AES
+		iwpriv $ifname set PMFMFPC=0
+		iwpriv $ifname set PMFMFPR=0
+		iwpriv $ifname set PMFSHA256=0
+		iwpriv $ifname set SSID="$ssid"
+		iwpriv $ifname set WPAPSK="$key"
+		;;
+	mixed-psk)
+		iwpriv $ifname set AuthMode=WPAPSKWPA2PSK
+		iwpriv $ifname set EncrypType=TKIPAES
+		iwpriv $ifname set PMFMFPC=0
+		iwpriv $ifname set PMFMFPR=0
+		iwpriv $ifname set PMFSHA256=0
+		iwpriv $ifname set SSID="$ssid"
+		iwpriv $ifname set WPAPSK="$key"
+		;;
+	psk2+ccmp)
+		iwpriv $ifname set AuthMode=WPA2PSKWPA3PSK
+		iwpriv $ifname set EncrypType=AES
+		iwpriv $ifname set PMFMFPC=1
+		iwpriv $ifname set PMFMFPR=0
+		iwpriv $ifname set PMFSHA256=1
+		iwpriv $ifname set SSID="$ssid"
+		iwpriv $ifname set WPAPSK="$key"
+		;;
+	ccmp)
+		iwpriv $ifname set AuthMode=WPA3PSK
+		iwpriv $ifname set EncrypType=AES
+		iwpriv $ifname set PMFMFPC=1
+		iwpriv $ifname set PMFMFPR=1
+		iwpriv $ifname set PMFSHA256=1
+		iwpriv $ifname set SSID="$ssid"
+		iwpriv $ifname set WPAPSK="$key"
+		;;
+	esac
+
+	iwpriv $ifname set SSID="$ssid"
+}
+
+__startup_iface_cfg()
+{
+	txpwr_changed=1
+	txbf_changed=1
+	ax_changed=1
+	bw_changed=1
+	channel_changed=1
+}
+
+__parse_wifi_iface()
+{
+	local iface="$1"
+	local device="$2"
+	local device_disabled="$3"
+	local status_changed="$4"
+	local main_ifname=$(uci -q get misc.wireless.ifname_2G)
+	
+	config_get backup_device "$iface" device
+	if [ "$device" != "$backup_device" ]; then
+		return
+	fi
+	
+	config_get backup_ifname "$iface" ifname
+	config_get network "$iface" network
+	# wifi-device disabled, set wifi-iface down which belong to this wifi-device
+	if [ "$device_disabled" == "1" ]; then
+		if [ "$main_ifname" == "$backup_ifname" ]; then
+			update_log "__parse_wifi_iface $iface $backup_ifname disable TX Beacon"
+			iwpriv $backup_ifname set no_bcn=1
+		else
+			update_log "__parse_wifi_iface ifconfig $backup_ifname down"
+			ifconfig $backup_ifname down
+		fi
+		ubus call network.interface.${network} remove_device "{\"name\":\"$backup_ifname\"}"
+		return
+	fi
+	
+	config_get backup_ssid "$iface" ssid
+	config_get backup_enc "$iface" encryption
+	config_get backup_key "$iface" key
+	config_get backup_sae_password "$iface" sae_password
+	config_get backup_hidden "$iface" hidden 0
+	config_get backup_disabled "$iface" disabled 0
+	config_get backup_miwifimesh "$iface" miwifi_mesh 0
+	config_get backup_twt "$iface" twt_responder
+	
+	local iface_set=$(uci show wireless|grep "\.ifname='$backup_ifname'" | awk -F"." '{print $2}')
+	local ssid=$(uci -q get wireless.${iface_set}.ssid)
+	local enc=$(uci -q get wireless.${iface_set}.encryption)
+	local key=$(uci -q get wireless.${iface_set}.key)
+	local sae_password=$(uci -q get wireless.${iface_set}.sae_password)
+	local hidden=$(uci -q get wireless.${iface_set}.hidden)
+	local disabled=$(uci -q get wireless.${iface_set}.disabled)
+	local mode=$(uci -q get wireless.${iface_set}.mode)
+	local network=$(uci -q get wireless.${iface_set}.network)
+	local miwifimesh=$(uci -q get wireless.${iface_set}.miwifi_mesh)
+	local main_ifname=$(uci -q get misc.wireless.ifname_2G)
+	local wifi_changed=0
+	local twt=$(uci -q get wireless.${iface_set}.twt_responder)
+
+	# sta mode process
+	if [ "$mode" == "sta" ]; then
+		update_log "update sta ifname=$backup_ifname"
+
+		if [ $ax_changed -gt 0 ]; then
+			local sta_ax=$(uci -q get wireless.${device}.ax)
+			local sta_band=$(uci -q get wireless.${device}.band)
+
+			update_log "$backup_ifname sta_ax = $sta_ax"
+			if [ "$sta_ax" == "0" ]; then
+				if [ "$sta_band" == "2G" ]; then
+					iwpriv $backup_ifname set ApCliWirelessMode=9
+				else
+					iwpriv $backup_ifname set ApCliWirelessMode=14
+				fi
+			else
+				if [ "$sta_band" == "2G" ]; then
+					iwpriv $backup_ifname set ApCliWirelessMode=16
+				else
+					iwpriv $backup_ifname set ApCliWirelessMode=17
+				fi
+			fi
+		fi
+		return
+	fi
+	
+	# wifi-device disabled from 1 -> 0
+	if [ "$status_changed" == "1" ]; then
+		if [ "$disabled" == "0" ]; then
+			if [ "$main_ifname" == "$ifname" ]; then
+				update_log "__parse_wifi_iface $iface $ifname enable TX Beacon"
+				iwpriv $ifname set no_bcn=0
+			else
+				update_log "__parse_wifi_iface ifconfig $ifname up"
+				ifconfig $backup_ifname up
+				iwpriv $backup_ifname set DfsChanClearFlag=1
+			fi
+
+			ubus call network.interface.${network} add_device "{\"name\":\"$backup_ifname\"}"
+			if [ "$enc" == "ccmp" -o "$enc" == "psk2+ccmp" ]; then
+				__update_wifi_cfg "$backup_ifname" "$ssid" "$enc" "$sae_password"
+			else
+				__update_wifi_cfg "$backup_ifname" "$ssid" "$enc" "$key"
+			fi
+
+			__startup_iface_cfg
+			update_log "update $backup_ifname hidden=$hidden"
+			iwpriv $backup_ifname set HideSSID="$hidden"
+			__update_phy_cfg "$device" "$backup_ifname"
+		fi
+
+		return
+	fi
+
+	if [ "$backup_disabled" != "$disabled" ]; then
+		update_log "$backup_ifname disabled change $backup_disabled -> $disabled"
+		if [ "$network" = "miot" ] ; then
+			config_get bindstatus "$iface" bindstatus "0"
+			config_get userswitch "$iface" userswitch "1"
+			if [ "0" == "$bindstatus" -o "0" == "$userswitch" ]; then
+				disabled="1"
+			fi
+		fi
+		if [ "$disabled" == "0" ]; then
+			if [ "$main_ifname" == "$backup_ifname" ]; then
+				update_log "__parse_wifi_iface $iface $backup_ifname enable TX Beacon"
+				iwpriv $backup_ifname set no_bcn=0
+			else
+				update_log "__parse_wifi_iface ifconfig $backup_ifname up"
+				ifconfig $backup_ifname up
+				iwpriv $backup_ifname set DfsChanClearFlag=1
+			fi
+
+			__startup_iface_cfg
+			wifi_changed=1
+			update_log "update $backup_ifname hidden=$hidden"
+			iwpriv $backup_ifname set HideSSID="$hidden"
+			ubus call network.interface.${network} add_device "{\"name\":\"$backup_ifname\"}"
+		else
+			if [ "$main_ifname" == "$backup_ifname" ]; then
+				update_log "__parse_wifi_iface $iface $backup_ifname disable TX Beacon"
+				iwpriv $backup_ifname set no_bcn=1
+			else
+				update_log "__parse_wifi_iface ifconfig $backup_ifname down"
+				ifconfig $backup_ifname down
+			fi
+
+			ubus call network.interface.${network} remove_device "{\"name\":\"$backup_ifname\"}"
+			return
+		fi
+	fi
+	
+	if [ "$ssid" != "$backup_ssid" -o "$enc" != "$backup_enc" ]; then
+		wifi_changed=1
+	fi
+
+	# update wifi-iface twt cfg
+	if [ "$twt" != "$backup_twt" ]; then
+		update_log "__update_phy_cfg twt = $twt"
+
+		case "$twt" in
+		1)
+			iwpriv $backup_ifname set twtsupport=1:3
+			iwpriv $backup_ifname set SSID="$ssid"
+			;;
+		0)
+			iwpriv $backup_ifname set twtsupport=1:0
+			iwpriv $backup_ifname set SSID="$ssid"
+			;;
+		esac
+	fi
+	
+	if [ "$enc" == "$backup_enc" ]; then
+		if [ "$enc" == "none" ]; then
+			update_log "$backup_ifname enc use none"
+		elif [ "$key" != "$backup_key" ]; then
+			wifi_changed=1
+		elif [ "$enc" = "ccmp" -a "$sae_password" != "$backup_sae_password" ]; then
+			wifi_changed=1
+		fi
+	fi
+	
+	if [ $wifi_changed -gt 0 -a "$disabled" == "0" ]; then
+		update_log "update $backup_ifname wifi config to $ssid $enc $key"
+		if [ "$enc" == "ccmp" -o "$enc" == "psk2+ccmp" ]; then
+			__update_wifi_cfg "$backup_ifname" "$ssid" "$enc" "$sae_password"
+		else
+			__update_wifi_cfg "$backup_ifname" "$ssid" "$enc" "$key"
+		fi
+	fi
+	
+	if [ "$disabled" == "0" ]; then
+		__update_phy_cfg "$device" "$backup_ifname"
+		
+		if [ "$hidden" != "$backup_hidden" ]; then
+			update_log "update $backup_ifname hidden=$hidden"
+			iwpriv $backup_ifname set HideSSID="$hidden"
+		fi
+
+		if [ -n "$miwifimesh" -a "$miwifimesh" != "$backup_miwifimesh" ]; then
+			update_log "update $backup_ifname miwifi_mesh=$miwifimesh"
+			iwpriv $backup_ifname set miwifi_mesh="$miwifimesh"
+		fi
+
+		local bh_5g_ap=$(uci -q get misc.backhauls.backhaul_5g_ap_iface)
+		if [ "$backup_ifname" == "$bh_5g_ap" ]; then
+			local backhaul=$(uci -q get wireless.${iface_set}.backhaul)
+			if [ -n "$backhaul" ]; then
+				iwpriv $backup_ifname set miwifi_backhual="$backhaul"
+			fi
+
+			local mesh_apmac=$(uci -q get wireless.${iface_set}.mesh_apmac)
+			if [ -n "$mesh_apmac" ]; then
+				iwpriv $backup_ifname set miwifi_mesh_apmac="$mesh_apmac"
+			fi
+
+			local mesh_aplimit=$(uci -q get wireless.${iface_set}.mesh_aplimit)
+			if [ -n "$mesh_aplimit" ]; then
+				iwpriv $backup_ifname set mesh_aplimit="$mesh_aplimit"
+			fi
+
+			local mesh_id=$(uci -q get wireless.${iface_set}.mesh_id)
+			if [ -n "$mesh_id" ]; then
+				iwpriv $backup_ifname set mesh_id="$mesh_id"
+			fi
+		fi
+
+		local miot_if=$(uci get misc.wireless.iface_miot_2g_ifname)
+		local br_status=`brctl show|grep -v $miot_if|grep $backup_ifname > /dev/null;echo $?`
+		local iface_network=$(uci -q get wireless.${iface_set}.network)
+		if [ "$br_status" == "1" ]; then
+			brctl addif br-$iface_network $backup_ifname
+			update_log "add $backup_ifname into network $iface_network"
+		else
+			update_log "$backup_ifname already in network $iface_network"
+		fi
+	fi
+}
+
+__parse_wifi_device()
+{
+	local device="$1"
+	local disabled=$(uci -q get wireless.${device}.disabled)
+	local status_changed
+
+	config_get backup_disabled "$device" disabled 0
+	if [ "$disabled" == "1" -a "$backup_disabled" == "1" ];then
+		update_log "$device disabled, not modify return"
+		return
+	fi
+	
+	if [ "$disabled" != "$backup_disabled" ]; then
+		status_changed="1"
+	else
+		status_changed="0"
+	fi
+	
+	# parse wifi-device txpwr
+	config_get backup_txpwr "$device" txpwr
+	local txpwr=$(uci -q get wireless.${device}.txpwr)
+	if [ "$txpwr" != "$backup_txpwr" ]; then
+		txpwr_changed=1
+		update_log "$device txpwr changed from $backup_txpwr to $txpwr"
+	else
+		txpwr_changed=0
+	fi
+	
+	# parse wifi-device bw
+	config_get backup_bw "$device" bw
+	local bw=$(uci -q get wireless.${device}.bw)
+	local band=$(uci -q get wireless.${device}.band)
+	if [ "$backup_bw" != "$bw" ]; then
+		bw_changed=1
+		update_log "$device bw changed from $backup_bw to $bw"
+	else
+		bw_changed=0
+	fi
+
+	# parse wifi-device ax
+	config_get backup_ax "$device" ax
+	local ax=$(uci -q get wireless.${device}.ax)
+	if [ "$ax" != "$backup_ax" ]; then
+		ax_changed=1
+		update_log "$device ax changed from $backup_ax to $ax"
+	else
+		ax_changed=0
+	fi
+	
+	# parse wifi-device txbf
+	config_get backup_txbf "$device" txbf
+	local txbf=$(uci -q get wireless.${device}.txbf)
+	if [ "$txbf" != "$backup_txbf" ]; then
+		txbf_changed=1
+		update_log "$device txbf changed from $backup_txbf to $txbf"
+	else
+		txbf_changed=0
+	fi
+	
+	# parse wifi-device channel
+	config_get backup_channel "$device" channel
+	local channel=$(uci -q get wireless.${device}.channel)
+	if [ "$channel" != "$backup_channel" ]; then
+		channel_changed=1
+		update_log "$device channel changed from $backup_channel to $channel"
+	else
+		channel_changed=0
+	fi
+
+	config_get backup_disabled "$device" disabled 0
+	config_foreach __parse_wifi_iface wifi-iface "$device" "$disabled" "$status_changed"
+}
+
+__startup_enable_iface()
+{
+	local iface="$1"
+	local force="$2"
+	local ifname=$(uci -q get wireless.${iface}.ifname)
+	local network=$(uci -q get wireless.${iface}.network)
+	local mode=$(uci -q get wireless.${iface}.mode)
+	local disabled=$(uci -q get wireless.${iface}.disabled)
+
+	if [ "$mode" == "sta" -a "$disabled" == "0" ]; then
+		ifconfig $ifname up
+		update_log "__startup_enable_iface set $ifname ApCliAutoConnect"
+		iwpriv $ifname set ApCliAutoConnect=3
+		ubus call network.interface.${network} add_device "{\"name\":\"$ifname\"}"
+	elif [ "$network" == "miot" ]; then
+		config_get bindstatus "$iface" bindstatus "0"
+		config_get userswitch "$iface" userswitch "1"
+
+		if [ "1" == "$bindstatus" -a "1" == "$userswitch" ]; then
+			update_log "__startup_enable_iface miot up $ifname"
+			ifconfig $ifname up
+			ubus call network.interface.${network} add_device "{\"name\":\"$ifname\"}"
+		fi
+	else
+		local main_ifname=$(uci -q get misc.wireless.ifname_2G)
+		if [ "$main_ifname" == "$ifname" ]; then
+			if [ "$disabled"x == "0"x -o "$force"x == "1"x ]; then
+				update_log "__startup_enable_iface $iface $ifname enable TX beacon"
+				ifconfig $ifname up
+				iwpriv $ifname set no_bcn=0
+				ubus call network.interface.${network} add_device "{\"name\":\"$ifname\"}"
+			else
+				update_log "__startup_enable_iface $iface $ifname disable TX beacon"
+				ifconfig $ifname up
+				iwpriv $ifname set no_bcn=1
+			fi
+		else
+			if [ "$disabled"x == "0"x -o "$force"x == "1"x ]; then
+				update_log "__startup_enable_iface $iface $ifname"
+				ifconfig $ifname up
+				ubus call network.interface.${network} add_device "{\"name\":\"$ifname\"}"
+
+				local main_ifname5G=$(uci -q get misc.wireless.ifname_5G)
+				if [ "$main_ifname5G" == "$ifname" ]; then
+					__scan_skip_chan
+				fi
+			fi
+		fi
+	fi
+}
+
+__startup_disable_iface()
+{
+	local iface="$1"
+	local force="$2"
+	local ifname=$(uci -q get wireless.${iface}.ifname)
+	local disabled=$(uci -q get wireless.${iface}.disabled)
+	local network=$(uci -q get wireless.${iface}.network)
+	local main_ifname=$(uci -q get misc.wireless.ifname_2G)
+	local miot_disable="0"
+
+	if [ "$force"x == "1"x ]; then
+		update_log "__startup_disable_iface $iface $ifname FORCE"
+		iwpriv $ifname set DfsNOPClean=0
+		ifconfig $ifname down
+		ubus call network.interface.${network} remove_device "{\"name\":\"$ifname\"}" 2>/dev/null
+	else
+		if [ "miot"x == "$network"x ]; then
+			disabled="0"
+			config_get bindstatus "$iface" bindstatus "0"
+			config_get userswitch "$iface" userswitch "1"
+			if [ "0" == "$bindstatus" -o "0" == "$userswitch" ]; then
+				miot_disable="1"
+			fi
+		fi
+
+		if [ "$disabled"x == "1"x -o "$miot_disable" == "1" ] || [ "$force" == "2" ]; then
+			if [ "$main_ifname" == "$ifname" ]; then
+				update_log "__startup_disable_iface $iface $ifname disable TX Beacon"
+				iwpriv $ifname set no_bcn=1
+			else
+				update_log "__startup_disable_iface $iface $ifname"
+				ifconfig $ifname down
+			fi
+			ubus call network.interface.${network} remove_device "{\"name\":\"$ifname\"}" 2>/dev/null
+		fi
+	fi
+}
+
+if [ -f "/tmp/wifi.debug" ]; then
+	update_log "================wifi_update start==================="
+else
+	rm -rf "$log_file"
+fi
+
+ft_mode=$(cat /proc/xiaoqiang/ft_mode 2>/dev/null)
+wl0_radio=$(nvram get wl0_radio)
+wl1_radio=$(nvram get wl1_radio)
+
+[ "$ft_mode"x == "1"x -a "$wl0_radio"x != "1"x -a "$wl1_radio"x != "1"x ] && {
+	echo "wifi_update: ft_mode = 1 " > /dev/console
+	return
+}
+
+[ -n "$1" -a "$1" == "reload_legacy" ] && {
+	ifname_main=$(uci -q get misc.wireless.ifname_2G)
+	iface_num=$(ls -al /sys/class/net/|grep wl|wc -l)
+
+	if [ "$iface_num" -eq "1" ]; then
+		update_log "ifconfig $ifname_main up first"
+		ifconfig $ifname_main up
+		config_load wireless
+		config_foreach __startup_enable_iface wifi-iface "1"
+		config_foreach __startup_disable_iface wifi-iface "0"
+		/etc/init.d/miwifi-roam start
+	else
+		update_log "first wifi down all iface, then up enabled iface"
+		config_load wireless
+		config_foreach __startup_disable_iface wifi-iface "1"
+		echo 3 > /proc/sys/vm/drop_caches
+		config_foreach __startup_enable_iface wifi-iface "0"
+		/etc/init.d/miwifi-roam restart
+		/etc/init.d/topomon restart
+		/etc/init.d/miwifi-discovery restart
+	fi
+
+	[ -f /usr/sbin/set_thermal_protect.sh ] && /usr/sbin/set_thermal_protect.sh
+
+	# if_5G may down, so use backhaul 5g ap iface
+	bh_ap=$(uci get misc.backhauls.backhaul_5g_ap_iface)
+	[ "$bh_ap" != "" ] && {
+		update_log "iwpriv $bh_ap set HRC=0"
+		iwpriv $bh_ap set HRC=0
+	}
+
+	return
+}
+
+[ $# == 2 ] && {
+	update_log "CMD: $1 $2"
+	if [ "$1" == "disable_iface" ]; then
+		__startup_disable_iface $2 "2"
+		return
+	elif [ "$1" == "enable_iface" ]; then
+		__startup_enable_iface $2 "0"
+		return
+	fi
+}
+
+[ ! -f ${backup_config} ] && {
+	update_log "${backup_config} not exist, return"
+	return
+}
+
+[ -z "$1" ] || {
+	update_log "restart all wifi interface"
+	config_load wireless
+	config_foreach __startup_disable_iface wifi-iface "1"
+	config_foreach __startup_enable_iface wifi-iface "0"
+	/etc/init.d/miwifi-roam restart
+	/etc/init.d/topomon restart
+	/etc/init.d/miwifi-discovery restart
+	return
+}
+
+config_load "${backup_config}"
+config_foreach __parse_wifi_device wifi-device
+/etc/init.d/miwifi-roam restart
+
+rm $backup_config >/dev/null 2>&1

@@ -1,0 +1,8 @@
+Package: mii_mgr
+Version: 1
+Depends: libc
+Source: sdk/mtk_sdk/mtk-openwrt-sdk-7.6.7.0/applications/mii_mgr
+Section: MTK Properties
+Architecture: aarch64_cortex-a53
+Installed-Size: 2677
+Description:  An mdio r/w phy regs program.

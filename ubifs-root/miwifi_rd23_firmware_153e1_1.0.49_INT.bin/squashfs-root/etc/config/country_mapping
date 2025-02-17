@@ -1,0 +1,370 @@
+config mapping AE
+	option region 'SG'
+	option timezoneindex '2.71'
+
+config mapping AU
+	option region 'SG'
+	option timezoneindex '2.97'
+
+config mapping BE
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping BR
+	option region 'US'
+	option timezoneindex '2.39'
+
+config mapping CH
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping CL
+	option region 'US'
+	option timezoneindex '2.35'
+
+config mapping DE
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping DK
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping EG
+	option region 'SG'
+	option timezoneindex '2.112'
+
+config mapping ES
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping FI
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping FR
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping ID
+	option region 'SG'
+	option timezoneindex '2.82'
+
+config mapping IE
+	option region 'EU'
+	option timezoneindex '2.55'
+	option GDPR '1'
+
+config mapping IL
+	option region 'SG'
+	option timezoneindex '2.64'
+
+config mapping IT
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping MA
+	option region 'SG'
+	option timezoneindex '2.113'
+
+config mapping MY
+	option region 'SG'
+	option timezoneindex '2.83'
+
+config mapping NG
+	option region 'SG'
+	option timezoneindex '2.51'
+
+config mapping NL
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping NO
+	option region 'EU'
+	option timezoneindex '2.53'
+	option GDPR '1'
+
+config mapping PE
+	option region 'US'
+	option timezoneindex '2.26'
+
+config mapping PL
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping RU
+	option region 'RU'
+	option timezoneindex '2.68'
+
+config mapping SE
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping SG
+	option region 'SG'
+	option timezoneindex '2.83'
+
+config mapping TH
+	option region 'SG'
+	option timezoneindex '2.81'
+
+config mapping TR
+	option region 'SG'
+	option timezoneindex '2.69'
+
+config mapping UA
+	option region 'EU'
+	option timezoneindex '2.62'
+
+config mapping VN
+	option region 'SG'
+	option timezoneindex '2.81'
+
+config mapping GB
+	option region 'EU'
+	option timezoneindex '2.50'
+	option GDPR '1'
+
+config mapping NZ
+	option region 'SG'
+	option timezoneindex '2.107'
+
+config mapping KR
+	option region 'SG'
+	option timezoneindex '2.92'
+
+config mapping PT
+	option region 'EU'
+	option timezoneindex '2.49'
+	option GDPR '1'
+
+config mapping KE
+	option region 'SG'
+	option timezoneindex '2.67'
+
+config mapping CN
+	option region 'CN'
+	option timezoneindex '2.84'
+
+config mapping HK
+	option region 'SG'
+	option timezoneindex '2.84'
+
+config mapping TW
+	option region 'SG'
+	option timezoneindex '2.85'
+
+config mapping IN
+	option region 'IN'
+	option timezoneindex '2.77'
+
+config mapping BG
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping CO
+	option region 'US'
+	option timezoneindex '2.26'
+
+config mapping CZ
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping EE
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping GR
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping HR
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping HU
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping JO
+	option region 'SG'
+	option timezoneindex '2.56'
+
+config mapping KH
+	option region 'SG'
+	option timezoneindex '2.81'
+
+config mapping LT
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping LV
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping MT
+	option region 'EU'
+	option timezoneindex '2.53'
+	option GDPR '1'
+
+config mapping MX
+	option region 'US'
+	option timezoneindex '2.19'
+
+config mapping RO
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping SK
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping LA
+	option region 'SG'
+	option timezoneindex '2.81'
+
+config mapping LU
+	option region 'EU'
+	option timezoneindex '2.53'
+	option GDPR '1'
+
+config mapping LI
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping CY
+	option region 'EU'
+	option timezoneindex '2.62'
+	option GDPR '1'
+
+config mapping BA
+	option region 'EU'
+	option timezoneindex '2.54'
+
+config mapping AT
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping BY
+	option region 'EU'
+	option timezoneindex '2.69'
+
+config mapping AZ
+	option region 'SG'
+	option timezoneindex '2.71'
+
+config mapping KZ
+	option region 'SG'
+	option timezoneindex '2.79'
+
+config mapping UZ
+	option region 'SG'
+	option timezoneindex '2.75'
+
+config mapping SA
+	option region 'SG'
+	option timezoneindex '2.69'
+
+config mapping IQ
+	option region 'SG'
+	option timezoneindex '2.69'
+
+config mapping GE
+	option region 'SG'
+	option timezoneindex '2.71'
+
+config mapping TN
+	option region 'SG'
+	option timezoneindex '2.51'
+
+config mapping ZA
+	option region 'SG'
+	option timezoneindex '2.65'
+
+config mapping MK
+	option region 'EU'
+	option timezoneindex '2.54'
+
+config mapping ME
+	option region 'EU'
+	option timezoneindex '2.54'
+
+config mapping MZ
+	option region 'SG'
+	option timezoneindex '2.65'
+
+config mapping CA
+	option region 'US'
+	option timezoneindex '2.28'
+
+config mapping PH
+	option region 'SG'
+	option timezoneindex '2.87'
+
+config mapping CI
+	option region 'SG'
+	option timezoneindex '2.47'
+
+config mapping PK
+	option region 'SG'
+	option timezoneindex '2.74'
+
+config mapping OM
+	option region 'SG'
+	option timezoneindex '2.71'
+
+config mapping QA
+	option region 'SG'
+	option timezoneindex '2.69'
+
+config mapping RS
+	option region 'EU'
+	option timezoneindex '2.54'
+
+config mapping AL
+	option region 'EU'
+	option timezoneindex '2.54'
+
+config mapping SI
+	option region 'EU'
+	option timezoneindex '2.54'
+	option GDPR '1'
+
+config mapping PY
+	option region 'US'
+	option timezoneindex '2.31'
+
+config mapping PA
+	option region 'US'
+	option timezoneindex '2.25'
+
+config mapping EC
+	option region 'US'
+	option timezoneindex '2.25'
+
+config mapping CR
+	option region 'US'
+	option timezoneindex '2.20'
